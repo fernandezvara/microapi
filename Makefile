@@ -1,10 +1,12 @@
 BINARY := bin/micro-api
+BINARY_MCP := bin/micro-api-mcp
 
 .PHONY: build run tidy test clean
 
 build:
 	mkdir -p bin
 	go build -o $(BINARY) ./cmd/micro-api
+	go build -o $(BINARY_MCP) ./cmd/micro-api-mcp
 
 run: build
 	./$(BINARY)

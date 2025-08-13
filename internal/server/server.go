@@ -37,6 +37,16 @@ func New(cfg *config.Config, db *sql.DB) *Server {
 
 	// Register API routes
 	h := handlers.New(db, cfg)
+
+	// Dashboard fallback at root
+	r.Get("/", h.Dashboard)
+	r.Get("/style.css", h.DashboardCSS)
+	r.Get("/favicon.ico", h.DashboardFavicon)
+
+	// MCP routes: define before dynamic param routes to avoid capture
+	r.Get("/mcp", h.MCPDiscovery)
+	r.Post("/mcp", h.MCPCall)
+
 	r.Route("/", func(r chi.Router) {
 		// Document routes
 		r.Post("/{set}/{collection}", h.CreateDocument)
@@ -52,11 +62,6 @@ func New(cfg *config.Config, db *sql.DB) *Server {
 		// Utility
 		r.Get("/_sets", h.ListSets)
 	})
-
-	// Dashboard fallback at root
-	r.Get("/", h.Dashboard)
-	r.Get("/style.css", h.DashboardCSS)
-	r.Get("/favicon.ico", h.DashboardFavicon)
 
 	return &Server{Mux: r}
 }
