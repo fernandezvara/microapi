@@ -48,6 +48,14 @@ func New(cfg *config.Config, db *sql.DB) *Server {
 	r.Post("/mcp", h.MCPCall)
 
 	r.Route("/", func(r chi.Router) {
+		// Index management routes (placed before {id} to avoid capture)
+		r.Post("/{set}/{collection}/_index", h.CreateIndex)
+		r.Get("/{set}/{collection}/_indexes", h.ListIndexes)
+		r.Get("/{set}/{collection}/_index/{path}", h.GetIndexStatus)
+		r.Delete("/{set}/{collection}/_index/{path}", h.DeleteIndex)
+		// Schema management
+		r.Put("/{set}/{collection}/_schema", h.PutSchema)
+		r.Get("/{set}/{collection}/_info", h.GetCollectionInfo)
 		// Document routes
 		r.Post("/{set}/{collection}", h.CreateDocument)
 		r.Get("/{set}/{collection}", h.QueryCollection)

@@ -13,18 +13,20 @@ type Condition struct {
 
 type ParsedWhere struct {
 	Conds []Condition
+	// Paths contains the normalized JSON paths (e.g. $.user.email) referenced in the where clause
+	Paths []string
 }
 
 // ParseWhere expects a JSON object like {"field.path": {"$op": value}}
 func ParseWhere(whereRaw string) (*ParsedWhere, error) {
 	if strings.TrimSpace(whereRaw) == "" {
-		return &ParsedWhere{}, nil
+		return &ParsedWhere{Conds: []Condition{}, Paths: []string{}}, nil
 	}
 	var obj map[string]map[string]interface{}
 	if err := json.Unmarshal([]byte(whereRaw), &obj); err != nil {
 		return nil, fmt.Errorf("invalid where JSON: %w", err)
 	}
-	pw := &ParsedWhere{}
+	pw := &ParsedWhere{Conds: []Condition{}, Paths: []string{}}
 	for path, ops := range obj {
 		jsonPath := toJSONPath(path)
 		expr := fmt.Sprintf("json_extract(data, '%s')", jsonPath)
@@ -35,6 +37,7 @@ func ParseWhere(whereRaw string) (*ParsedWhere, error) {
 			s, _ := ToSQL(op, expr)
 			pw.Conds = append(pw.Conds, Condition{SQL: s, Args: []any{v}})
 		}
+		pw.Paths = append(pw.Paths, jsonPath)
 	}
 	return pw, nil
 }

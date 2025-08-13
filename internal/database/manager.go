@@ -8,6 +8,9 @@ import (
 
 func tableName(set string) string { return fmt.Sprintf("data_%s", set) }
 
+// TableName exposes the underlying physical table name for a set.
+func TableName(set string) string { return tableName(set) }
+
 func EnsureSetTable(db *sql.DB, set string) error {
 	_, err := db.Exec(fmt.Sprintf(`
 	CREATE TABLE IF NOT EXISTS %s (

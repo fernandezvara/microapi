@@ -14,6 +14,7 @@ import (
 	"microapi/internal/middleware"
 	"microapi/internal/models"
 	"microapi/internal/query"
+	"microapi/internal/validation"
 )
 
 func (h *Handlers) CreateDocument(w http.ResponseWriter, r *http.Request) {
@@ -27,6 +28,12 @@ func (h *Handlers) CreateDocument(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil { middleware.WriteJSON(w, http.StatusBadRequest, false, nil, models.Ptr("invalid JSON body")); return }
 	sanitized, verr := sanitizeForCreate(body)
 	if verr != nil { middleware.WriteJSON(w, verr.Code, false, nil, models.Ptr(verr.Message)); return }
+
+	// Schema validation (if schema exists)
+	if err := validation.ValidateDocument(h.db, set, collection, sanitized); err != nil {
+		middleware.WriteJSON(w, http.StatusBadRequest, false, nil, models.Ptr(err.Error()))
+		return
+	}
 
 	id := xid.New().String()
 	now := time.Now().Unix()
@@ -61,6 +68,11 @@ func (h *Handlers) ReplaceDocument(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil { middleware.WriteJSON(w, http.StatusBadRequest, false, nil, models.Ptr("invalid JSON body")); return }
 	sanitized, verr := sanitizeForPutPatch(body, id)
 	if verr != nil { middleware.WriteJSON(w, verr.Code, false, nil, models.Ptr(verr.Message)); return }
+	// Schema validation
+	if err := validation.ValidateDocument(h.db, set, collection, sanitized); err != nil {
+		middleware.WriteJSON(w, http.StatusBadRequest, false, nil, models.Ptr(err.Error()))
+		return
+	}
 	now := time.Now().Unix()
 	_, err := h.db.Exec("UPDATE "+tableName(set)+" SET data = ?, updated_at = ? WHERE id = ? AND collection = ?", mustJSON(sanitized), now, id, collection)
 	if err != nil { writeErr(w, err); return }
@@ -87,6 +99,11 @@ func (h *Handlers) UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	var m map[string]any
 	_ = json.Unmarshal([]byte(dataStr), &m)
 	for k, v := range sanitized { m[k] = v }
+	// Schema validation
+	if err := validation.ValidateDocument(h.db, set, collection, m); err != nil {
+		middleware.WriteJSON(w, http.StatusBadRequest, false, nil, models.Ptr(err.Error()))
+		return
+	}
 	now := time.Now().Unix()
 	_, err = h.db.Exec("UPDATE "+tableName(set)+" SET data = ?, updated_at = ? WHERE id = ? AND collection = ?", mustJSON(m), now, id, collection)
 	if err != nil { writeErr(w, err); return }
