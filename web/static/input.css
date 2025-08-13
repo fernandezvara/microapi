@@ -10,13 +10,25 @@
 }
 
 .gradient-border {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  /* Amber gradient replacing previous green */
+  background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
   padding: 1px;
 }
 
 @layer theme {
   :root {
     --radius-md: 0.25rem;
+
+    --color-amber-100: #fef3c7;
+    --color-amber-200: #fde68a;
+    --color-amber-300: #fcd34d;
+    --color-amber-400: #fbbf24;
+    --color-amber-500: #f59e0b;
+    --color-amber-600: #d97706;
+    --color-amber-700: #b45309;
+    --color-amber-800: #92400e;
+    --color-amber-900: #78350f;
+    /* --color-emerald-500: #f59e0b; */
   }
 }
 

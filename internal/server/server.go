@@ -42,6 +42,7 @@ func New(cfg *config.Config, db *sql.DB) *Server {
 	r.Get("/", h.Dashboard)
 	r.Get("/style.css", h.DashboardCSS)
 	r.Get("/favicon.ico", h.DashboardFavicon)
+	r.Get("/logo.svg", h.DashboardLogo)
 
 	// MCP routes: define before dynamic param routes to avoid capture
 	r.Get("/mcp", h.MCPDiscovery)

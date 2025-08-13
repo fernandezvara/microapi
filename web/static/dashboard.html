@@ -56,10 +56,13 @@
         class="w-64 bg-white border-r border-gray-200 dark:bg-gray-800 dark:border-gray-700"
       >
         <div class="p-6">
-          <h1
-            class="text-2xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent"
-          >
-            Micro API
+          <h1 class="text-2xl font-bold flex items-center gap-2">
+            <img
+              src="/logo.svg"
+              alt="Micro API logo"
+              style="width: 32px; height: 32px"
+            />
+            <span class="text-amber-400">Micro API</span>
           </h1>
           <p class="text-xs text-gray-400 mt-1">Schema-less JSON Storage</p>
         </div>
@@ -172,13 +175,13 @@
             <template x-for="set in sets" :key="set.name">
               <button
                 @click="selectSet(set)"
-                :class="selectedSet?.name === set.name ? 'bg-green-600 text-white' : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'"
+                :class="selectedSet?.name === set.name ? 'bg-amber-600 text-white' : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white'"
                 class="w-full text-left px-3 py-2 rounded-lg text-sm transition-all flex justify-between items-center"
               >
                 <span x-text="set.name"></span>
                 <span
                   class="text-xs opacity-60"
-                  x-text="(set.collections?.length || 0) + ' cols'"
+                  x-text="((set.colls ?? (set.collections?.length || 0)) + ' cols')"
                 ></span>
               </button>
             </template>
@@ -226,7 +229,7 @@
             <div class="flex gap-3 items-center">
               <button
                 @click="showNewDocModal = true"
-                class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors"
+                class="inline-flex items-center px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm font-medium transition-colors"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -250,7 +253,7 @@
                 @click="toggleTheme()"
                 :title="isDark ? 'Switch to light' : 'Switch to dark'"
                 :aria-pressed="isDark.toString()"
-                class="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg text-sm font-medium transition-colors dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100"
+                class="px-3 py-2 bg-white hover:bg-gray-300 text-gray-800 rounded-lg text-sm font-medium transition-colors dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-100"
               >
                 <svg
                   x-show="!isDark"
@@ -290,7 +293,7 @@
               <button
                 @click="openHealthModal()"
                 :title="healthOk === false ? ('Health error: ' + (lastHealthError || '')) : 'View health'"
-                class="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors"
+                class="px-4 py-2 bg-white hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg text-sm font-medium transition-colors"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -371,10 +374,10 @@
                     <p class="text-gray-400 text-sm">Total Sets</p>
                     <p class="text-3xl font-bold mt-2" x-text="sets.length"></p>
                   </div>
-                  <div class="bg-green-600 bg-opacity-20 p-3 rounded-lg">
+                  <div class="bg-amber-600 bg-opacity-20 p-3 rounded-lg">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      class="w-6 h-6 text-green-400"
+                      class="w-6 h-6 text-amber-400"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke-width="1.5"
@@ -435,10 +438,10 @@
                       x-text="getTotalDocuments()"
                     ></p>
                   </div>
-                  <div class="bg-green-600 bg-opacity-20 p-3 rounded-lg">
+                  <div class="bg-amber-600 bg-opacity-20 p-3 rounded-lg">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      class="w-6 h-6 text-green-400"
+                      class="w-6 h-6 text-amber-400"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke-width="1.5"
@@ -485,6 +488,312 @@
                 </div>
               </div>
             </div>
+
+            <!-- Selected Set Overview -->
+            <div class="mt-8" x-show="selectedSet">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-semibold">
+                  Selected Set:
+                  <span
+                    class="text-amber-600"
+                    x-text="selectedSet?.name"
+                  ></span>
+                </h3>
+                <div class="text-sm text-gray-500">
+                  <span x-text="getSelectedSetDocsCount()"></span>
+                  <span>docs</span>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-12 gap-6">
+                <!-- Collections in Set -->
+                <div class="col-span-12 lg:col-span-4">
+                  <div
+                    class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
+                  >
+                    <div
+                      class="p-4 border-b border-gray-200 dark:border-gray-700"
+                    >
+                      <h4 class="font-semibold">Collections</h4>
+                    </div>
+                    <div class="p-2">
+                      <template
+                        x-for="collection in (selectedSet?.collections || [])"
+                        :key="collection.name"
+                      >
+                        <button
+                          @click="selectedCollection = collection.name; loadCollectionInfo(selectedSet.name, collection.name)"
+                          :class="selectedCollection === collection.name ? 'bg-amber-600 text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700'"
+                          class="w-full text-left px-3 py-2 rounded-lg text-sm mb-1 transition-all flex justify-between items-center"
+                        >
+                          <span x-text="collection.name"></span>
+                          <span
+                            class="text-xs opacity-60"
+                            x-text="collection.count"
+                          ></span>
+                        </button>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Schema + Stats for Selected Collection -->
+                <div class="col-span-12 lg:col-span-8">
+                  <div
+                    class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700"
+                  >
+                    <div
+                      class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between"
+                    >
+                      <div>
+                        <h4 class="font-semibold">Schema</h4>
+                      </div>
+                      <div
+                        class="flex items-center gap-2"
+                        x-show="selectedCollection"
+                      >
+                        <template x-if="getSelectedCollectionInfo()?.schema">
+                          <button
+                            @click="beginSchemaEdit()"
+                            class="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg text-sm"
+                          >
+                            Edit
+                          </button>
+                        </template>
+                        <template x-if="!getSelectedCollectionInfo()?.schema">
+                          <button
+                            @click="beginSchemaEdit()"
+                            class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm"
+                          >
+                            Create
+                          </button>
+                        </template>
+                        <template x-if="getSelectedCollectionInfo()?.schema">
+                          <button
+                            @click="removeSchema()"
+                            :disabled="isSavingSchema"
+                            class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm disabled:opacity-50"
+                          >
+                            Remove
+                          </button>
+                        </template>
+                      </div>
+                    </div>
+                    <div class="p-4 space-y-4">
+                      <div
+                        x-show="!selectedCollection"
+                        class="text-sm text-gray-500"
+                      >
+                        Select a collection to view its schema.
+                      </div>
+
+                      <!-- Editor -->
+                      <div x-show="isEditingSchema && selectedCollection">
+                        <textarea
+                          x-model="schemaEditorText"
+                          class="w-full h-64 p-3 font-mono text-sm bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
+                        ></textarea>
+                        <p class="mt-1 text-xs text-gray-500">
+                          for help visit
+                          <a
+                            href="https://json-schema.org/learn/getting-started-step-by-step"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="text-amber-600 hover:text-amber-700 underline"
+                          >https://json-schema.org/learn/getting-started-step-by-step</a>
+                        </p>
+                        <div class="mt-2 flex items-center gap-2">
+                          <button
+                            @click="saveSchema()"
+                            :disabled="isSavingSchema"
+                            class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm disabled:opacity-50"
+                          >
+                            Save
+                          </button>
+                          <button
+                            @click="cancelSchemaEdit()"
+                            :disabled="isSavingSchema"
+                            class="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg text-sm disabled:opacity-50"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Readonly view -->
+                      <div x-show="!isEditingSchema && selectedCollection">
+                        <template x-if="getSelectedCollectionInfo()?.schema">
+                          <pre
+                            class="p-3 rounded-lg bg-gray-100 dark:bg-gray-900 overflow-auto text-xs"
+                          ><code x-text="JSON.stringify(getSelectedCollectionInfo().schema, null, 2)"></code></pre>
+                        </template>
+                        <template x-if="!getSelectedCollectionInfo()?.schema">
+                          <div class="text-sm text-gray-500">
+                            No schema defined for this collection.
+                          </div>
+                        </template>
+                      </div>
+
+                      <hr
+                        x-show="selectedCollection"
+                        class="my-4 border-t border-gray-200 dark:border-gray-700"
+                      />
+
+                      <!-- Indexes -->
+                      <div x-show="selectedCollection" class="space-y-3">
+                        <div class="flex items-center justify-between">
+                          <h5 class="font-semibold">Indexes</h5>
+                          <div class="flex items-center gap-2">
+                            <button
+                              @click="refreshIndexes()"
+                              class="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg text-sm"
+                            >
+                              Refresh
+                            </button>
+                          </div>
+                        </div>
+                        <!-- Create index form -->
+                        <div class="flex flex-col sm:flex-row gap-2">
+                          <input
+                            type="text"
+                            x-model="indexPathsInput"
+                            placeholder="path or comma-separated paths (e.g. $.user.id,$.org.id)"
+                            class="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
+                          />
+                          <button
+                            @click="createIndex()"
+                            :disabled="isCreatingIndex"
+                            class="px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-sm disabled:opacity-50"
+                          >
+                            Create Index
+                          </button>
+                        </div>
+                        <!-- Indexes list -->
+                        <template
+                          x-if="!(getSelectedCollectionInfo().indexes && getSelectedCollectionInfo().indexes.length)"
+                        >
+                          <div class="text-sm text-gray-500">
+                            No indexes created yet.
+                          </div>
+                        </template>
+                        <div
+                          class="space-y-2"
+                          x-show="getSelectedCollectionInfo().indexes && getSelectedCollectionInfo().indexes.length"
+                        >
+                          <template
+                            x-for="idx in (getSelectedCollectionInfo().indexes || [])"
+                            :key="idx.name"
+                          >
+                            <div
+                              class="border border-gray-200 dark:border-gray-700 rounded-lg p-3"
+                            >
+                              <div
+                                class="flex items-start justify-between gap-2"
+                              >
+                                <div>
+                                  <div class="flex items-center gap-2">
+                                    <span
+                                      class="font-medium"
+                                      x-text="idx.name"
+                                    ></span>
+                                    <span
+                                      class="text-xs px-2 py-0.5 rounded-full"
+                                      :class="{
+                                      'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200': idx.status === 'ready',
+                                      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200': idx.status === 'creating',
+                                      'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200': idx.status === 'error',
+                                      'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200': !idx.status
+                                    }"
+                                      x-text="idx.status || '—'"
+                                    ></span>
+                                  </div>
+                                  <div class="mt-1 flex flex-wrap gap-1">
+                                    <template
+                                      x-for="p in (idx.paths || [])"
+                                      :key="p"
+                                    >
+                                      <span
+                                        class="text-xs px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-mono"
+                                        x-text="p"
+                                      ></span>
+                                    </template>
+                                  </div>
+                                  <div
+                                    class="mt-1 text-xs text-gray-500 flex flex-wrap gap-3"
+                                  >
+                                    <div>
+                                      usage:
+                                      <span
+                                        x-text="idx.usage_count || 0"
+                                      ></span>
+                                    </div>
+                                    <div x-show="idx.created_at">
+                                      created:
+                                      <span
+                                        x-text="formatDate(idx.created_at)"
+                                      ></span>
+                                    </div>
+                                    <div x-show="idx.last_used_at">
+                                      last used:
+                                      <span
+                                        x-text="formatDate(idx.last_used_at)"
+                                      ></span>
+                                    </div>
+                                  </div>
+                                  <div
+                                    class="mt-1 text-xs text-red-600"
+                                    x-show="idx.error"
+                                    x-text="idx.error"
+                                  ></div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                  <button
+                                    @click="deleteIndex(idx)"
+                                    :disabled="isDeletingIndex === idx.name"
+                                    class="px-2 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs disabled:opacity-50"
+                                  >
+                                    Delete
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </template>
+                        </div>
+                      </div>
+
+                      <hr
+                        x-show="selectedCollection"
+                        class="my-4 border-t border-gray-200 dark:border-gray-700"
+                      />
+
+                      <!-- Collection Stats -->
+                      <div
+                        x-show="selectedCollection"
+                        class="text-sm text-gray-600 dark:text-gray-300"
+                      >
+                        <h5 class="font-semibold mb-1">Statistics</h5>
+                        <div class="flex flex-wrap gap-4">
+                          <div>
+                            <span class="opacity-70">Docs:</span>
+                            <span
+                              x-text="(getSelectedCollectionInfo().stats?.count || 0)"
+                            ></span>
+                          </div>
+                          <div
+                            x-show="getSelectedCollectionInfo().stats?.created_at"
+                          >
+                            <span class="opacity-70">Created:</span>
+                            <span
+                              x-text="formatDate(getSelectedCollectionInfo().stats.created_at)"
+                            ></span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Explorer View -->
@@ -507,7 +816,7 @@
                     >
                       <button
                         @click="selectedCollection = collection.name; loadDocuments()"
-                        :class="selectedCollection === collection.name ? 'bg-green-600 text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700'"
+                        :class="selectedCollection === collection.name ? 'bg-amber-600 text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700'"
                         class="w-full text-left px-3 py-2 rounded-lg text-sm mb-1 transition-all flex justify-between items-center"
                       >
                         <span x-text="collection.name"></span>
@@ -535,7 +844,7 @@
                         type="text"
                         placeholder="Search (where JSON)"
                         x-model="queryWhere"
-                        class="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600"
+                        class="px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
                       />
                       <button
                         @click="queryOffset = 0; loadDocuments()"
@@ -585,7 +894,7 @@
                         min="1"
                         x-model.number="queryLimit"
                         @change="queryOffset = 0; loadDocuments()"
-                        class="w-20 px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600"
+                        class="w-20 px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
                       />
                       <button
                         @click="prevPage()"
@@ -656,7 +965,7 @@
                         >
                           <div class="flex justify-between items-start mb-2">
                             <code
-                              class="text-xs text-green-400"
+                              class="text-xs text-amber-400"
                               x-text="doc._meta.id"
                             ></code>
                             <div class="flex items-center gap-3">
@@ -725,7 +1034,7 @@
                         type="text"
                         x-model="queryPath"
                         placeholder="/set/collection"
-                        class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600"
+                        class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
                       />
                     </div>
 
@@ -738,7 +1047,7 @@
                         x-model="queryWhere"
                         rows="4"
                         placeholder='{"field": {"$gt": 10}}'
-                        class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600 json-editor"
+                        class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600 json-editor"
                       ></textarea>
                     </div>
 
@@ -752,7 +1061,7 @@
                           type="text"
                           x-model="queryOrderBy"
                           placeholder="field_name"
-                          class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600"
+                          class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
                         />
                       </div>
                       <div>
@@ -764,7 +1073,7 @@
                           type="number"
                           x-model.number="queryLimit"
                           placeholder="10"
-                          class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600"
+                          class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
                         />
                       </div>
                       <div>
@@ -776,7 +1085,7 @@
                           type="number"
                           x-model.number="queryOffset"
                           placeholder="0"
-                          class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600"
+                          class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
                         />
                       </div>
                     </div>
@@ -784,7 +1093,7 @@
 
                   <button
                     @click="executeQuery()"
-                    class="inline-flex items-center mt-6 px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                    class="inline-flex items-center mt-6 px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium transition-colors"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -839,7 +1148,7 @@
                     <div class="flex gap-2">
                       <select
                         x-model="apiMethod"
-                        class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600"
+                        class="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
                       >
                         <option>GET</option>
                         <option>POST</option>
@@ -851,7 +1160,7 @@
                         type="text"
                         x-model="apiEndpoint"
                         placeholder="/set/collection"
-                        class="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600"
+                        class="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
                       />
                     </div>
 
@@ -863,7 +1172,7 @@
                       <textarea
                         x-model="apiHeaders"
                         rows="3"
-                        class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600 json-editor"
+                        class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600 json-editor"
                       ></textarea>
                     </div>
 
@@ -875,13 +1184,13 @@
                       <textarea
                         x-model="apiBody"
                         rows="8"
-                        class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600 json-editor"
+                        class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600 json-editor"
                       ></textarea>
                     </div>
 
                     <button
                       @click="sendApiRequest()"
-                      class="inline-flex items-center w-full px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                      class="inline-flex items-center w-full px-6 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium transition-colors"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -931,7 +1240,7 @@
                       >
                       <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
                         <code
-                          class="text-xs text-green-400"
+                          class="text-xs text-amber-400"
                           x-text="getCurlCommand()"
                         ></code>
                       </div>
@@ -985,13 +1294,13 @@
           <textarea
             x-model="documentJson"
             rows="20"
-            class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600 json-editor text-sm"
+            class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600 json-editor text-sm"
           ></textarea>
           <div class="mt-4 flex gap-2">
             <button
               @click="saveDocument()"
               :disabled="isSaving"
-              class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+              class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
             >
               <svg
                 x-show="isSaving"
@@ -1131,7 +1440,7 @@
               type="text"
               x-model="newDocPath"
               placeholder="/set/collection"
-              class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600"
+              class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600"
             />
           </div>
           <div class="mb-4">
@@ -1142,13 +1451,13 @@
               x-model="newDocJson"
               rows="10"
               placeholder='{"name": "value"}'
-              class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-green-600 focus:border-green-600 json-editor"
+              class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-1 focus:ring-amber-600 focus:border-amber-600 json-editor"
             ></textarea>
           </div>
           <button
             @click="createDocument()"
             :disabled="isCreating"
-            class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+            class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
           >
             <svg
               x-show="isCreating"
@@ -1179,7 +1488,7 @@
         <div
           class="px-4 py-2 rounded-lg shadow border"
           :class="{
-             'bg-green-100 border-green-300 text-green-800 dark:bg-green-900/60 dark:border-green-700 dark:text-green-200': t.type === 'success',
+             'bg-amber-100 border-amber-300 text-amber-800 dark:bg-amber-900/60 dark:border-amber-700 dark:text-amber-200': t.type === 'success',
              'bg-red-100 border-red-300 text-red-800 dark:bg-red-900/60 dark:border-red-700 dark:text-red-200': t.type === 'error',
              'bg-gray-100 border-gray-300 text-gray-800 dark:bg-gray-800/80 dark:border-gray-700 dark:text-gray-200': t.type !== 'success' && t.type !== 'error'
            }"
@@ -1194,7 +1503,18 @@
         return {
           // Views / Selections
           currentView: "explorer",
-          sets: [], // [{ name, collections: [{name, count}] }]
+          sets: [], // [{ name, colls?, docs?, collections: [{name, count}] }]
+          setsStats: { total_docs: 0 },
+          collectionInfos: {}, // { [set]: { [collection]: { schema, indexes, stats } } }
+          // Schema editor state (Overview)
+          isEditingSchema: false,
+          schemaEditorText: "",
+          isSavingSchema: false,
+          schemaSource: "",
+          // Indexes state (Overview)
+          indexPathsInput: "",
+          isCreatingIndex: false,
+          isDeletingIndex: null,
           selectedSet: null, // { name, collections }
           selectedCollection: "",
           documents: [],
@@ -1319,14 +1639,29 @@
             try {
               const r = await fetch("/_sets");
               const j = await r.json();
-              const names = j && j.success ? j.data : Array.isArray(j) ? j : [];
-              this.sets = (names || []).map((name) => ({
-                name,
-                collections: [],
-              }));
+              if (j && j.success && j.data && j.data.sets) {
+                const data = j.data || {};
+                const setsMap = data.sets || {};
+                this.sets = Object.entries(setsMap).map(([name, v]) => ({
+                  name,
+                  colls: (v && (v.colls ?? v.colls)) || 0,
+                  docs: (v && (v.docs ?? v.docs)) || 0,
+                  collections: [],
+                }));
+                this.setsStats = data.stats || { total_docs: 0 };
+              } else {
+                const names =
+                  j && j.success ? j.data : Array.isArray(j) ? j : [];
+                this.sets = (names || []).map((name) => ({
+                  name,
+                  collections: [],
+                }));
+                this.setsStats = { total_docs: 0 };
+              }
             } catch (e) {
               console.error("loadSets error", e);
               this.sets = [];
+              this.setsStats = { total_docs: 0 };
             }
           },
 
@@ -1337,6 +1672,11 @@
             if (this.selectedSet.collections.length) {
               this.selectedCollection = this.selectedSet.collections[0].name;
               await this.loadDocuments();
+              await this.loadCollectionInfo(
+                this.selectedSet.name,
+                this.selectedCollection
+              );
+              this.isEditingSchema = false;
             }
           },
 
@@ -1411,6 +1751,344 @@
                 null,
                 2
               );
+            }
+          },
+
+          async loadCollectionInfo(setName, collectionName) {
+            if (!setName || !collectionName) return;
+            try {
+              const r = await fetch(`/${setName}/${collectionName}/_info`);
+              const j = await r.json();
+              if (j && j.success) {
+                if (!this.collectionInfos[setName])
+                  this.collectionInfos[setName] = {};
+                this.collectionInfos[setName][collectionName] = j.data || {};
+              }
+            } catch (e) {
+              console.error("loadCollectionInfo error", e);
+            }
+          },
+
+          getSelectedSetDocsCount() {
+            if (!this.selectedSet) return 0;
+            if (Number.isFinite(this.selectedSet.docs))
+              return this.selectedSet.docs || 0;
+            return (this.selectedSet.collections || []).reduce(
+              (c, col) => c + (col.count || 0),
+              0
+            );
+          },
+
+          getSelectedCollectionInfo() {
+            const setName = this.selectedSet?.name;
+            const coll = this.selectedCollection;
+            return (
+              (setName && coll && this.collectionInfos[setName]?.[coll]) || {}
+            );
+          },
+
+          // Schema editor actions
+          async beginSchemaEdit() {
+            const info = this.getSelectedCollectionInfo();
+            const schema = info?.schema;
+            if (schema) {
+              this.schemaEditorText = JSON.stringify(schema, null, 2);
+              this.schemaSource = "existing";
+              this.isEditingSchema = true;
+              return;
+            }
+            // No schema: first try to infer from first document (skipping _meta). If none, use example template.
+            let sample = null;
+            if (Array.isArray(this.documents) && this.documents.length > 0) {
+              sample = this.documents[0];
+            } else if (this.selectedSet?.name && this.selectedCollection) {
+              try {
+                const params = new URLSearchParams();
+                params.set("limit", 1);
+                const r = await fetch(
+                  `/${this.selectedSet.name}/${this.selectedCollection}?` + params.toString()
+                );
+                const j = await r.json();
+                if (j && j.success && Array.isArray(j.data) && j.data.length) {
+                  sample = j.data[0];
+                }
+              } catch (e) {
+                // ignore fetch errors, we'll fall back to template
+              }
+            }
+            let finalSchema;
+            if (sample && typeof sample === "object" && sample !== null) {
+              const inferred = this.inferSchemaFromSample(sample);
+              finalSchema = {
+                $schema: "https://json-schema.org/draft/2020-12/schema",
+                title: this.selectedCollection || "Document",
+                ...(inferred && inferred.type === "object"
+                  ? { ...inferred, additionalProperties: false }
+                  : { type: "object", additionalProperties: false, properties: {} }),
+              };
+              this.schemaSource = "sample";
+            } else {
+              finalSchema = {
+                $schema: "https://json-schema.org/draft/2020-12/schema",
+                title: this.selectedCollection || "Document",
+                type: "object",
+                additionalProperties: false,
+                properties: {
+                  name: {
+                    type: "string",
+                    description: "this is sample data, review it",
+                  },
+                  surname: {
+                    type: "string",
+                    description: "this is sample data, review it",
+                  },
+                  email: {
+                    type: "string",
+                    description: "this is sample data, review it",
+                  },
+                  age: {
+                    type: "integer",
+                    description: "Age in years",
+                  },
+                },
+                required: ["name", "surname", "email", "age"],
+              };
+              this.schemaSource = "example";
+            }
+            this.isEditingSchema = true;
+            this.schemaEditorText = JSON.stringify(finalSchema, null, 2);
+          },
+
+          inferSchemaFromSample(value) {
+            const typeOf = (v) => {
+              if (v === null) return "null";
+              if (Array.isArray(v)) return "array";
+              return typeof v;
+            };
+            const dedupe = (arr) => {
+              const seen = new Set();
+              const out = [];
+              for (const s of arr) {
+                const key = JSON.stringify(s);
+                if (!seen.has(key)) { seen.add(key); out.push(s); }
+              }
+              return out;
+            };
+            const infer = (v) => {
+              const t = typeOf(v);
+              if (t === "null" || t === "undefined") return null;
+              if (t === "string") return { type: "string" };
+              if (t === "number") return Number.isInteger(v) ? { type: "integer" } : { type: "number" };
+              if (t === "boolean") return { type: "boolean" };
+              if (t === "array") {
+                const itemSchemas = dedupe(
+                  (v || [])
+                    .map((el) => infer(el))
+                    .filter(Boolean)
+                );
+                if (itemSchemas.length === 0) return { type: "array" };
+                if (itemSchemas.length === 1) return { type: "array", items: itemSchemas[0] };
+                return { type: "array", items: { anyOf: itemSchemas } };
+              }
+              if (t === "object") {
+                const props = {};
+                const req = [];
+                for (const [k, val] of Object.entries(v || {})) {
+                  if (k === "_meta") continue; // skip meta properties
+                  const child = infer(val);
+                  if (child) {
+                    props[k] = child;
+                    if (val !== null && val !== undefined) req.push(k);
+                  }
+                }
+                return { type: "object", properties: props, required: req };
+              }
+              return null;
+            };
+            return infer(value) || { type: "object", properties: {}, required: [] };
+          },
+          cancelSchemaEdit() {
+            this.isEditingSchema = false;
+            this.schemaEditorText = "";
+            this.schemaSource = "";
+          },
+          async saveSchema() {
+            if (!this.selectedSet?.name || !this.selectedCollection) return;
+            let parsed;
+            try {
+              parsed = JSON.parse(this.schemaEditorText || "null");
+            } catch (e) {
+              this.showToast("Invalid JSON schema", "error");
+              return;
+            }
+            try {
+              this.isSavingSchema = true;
+              const r = await fetch(
+                `/${this.selectedSet.name}/${this.selectedCollection}/_schema`,
+                {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: parsed === null ? "null" : JSON.stringify(parsed),
+                }
+              );
+              const j = await r.json();
+              if (j && j.success) {
+                if (!this.collectionInfos[this.selectedSet.name])
+                  this.collectionInfos[this.selectedSet.name] = {};
+                if (
+                  !this.collectionInfos[this.selectedSet.name][
+                    this.selectedCollection
+                  ]
+                )
+                  this.collectionInfos[this.selectedSet.name][
+                    this.selectedCollection
+                  ] = {};
+                this.collectionInfos[this.selectedSet.name][
+                  this.selectedCollection
+                ].schema = j.data?.schema ?? null;
+                this.isEditingSchema = false;
+                this.schemaEditorText = "";
+                this.showToast("Schema saved", "success");
+              } else {
+                this.showToast(j?.error || "Failed to save schema", "error");
+              }
+            } catch (e) {
+              this.showToast("Failed to save schema", "error");
+            } finally {
+              this.isSavingSchema = false;
+            }
+          },
+          async removeSchema() {
+            if (!this.selectedSet?.name || !this.selectedCollection) return;
+            try {
+              this.isSavingSchema = true;
+              const r = await fetch(
+                `/${this.selectedSet.name}/${this.selectedCollection}/_schema`,
+                {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: "null",
+                }
+              );
+              const j = await r.json();
+              if (j && j.success) {
+                if (!this.collectionInfos[this.selectedSet.name])
+                  this.collectionInfos[this.selectedSet.name] = {};
+                if (
+                  !this.collectionInfos[this.selectedSet.name][
+                    this.selectedCollection
+                  ]
+                )
+                  this.collectionInfos[this.selectedSet.name][
+                    this.selectedCollection
+                  ] = {};
+                this.collectionInfos[this.selectedSet.name][
+                  this.selectedCollection
+                ].schema = null;
+                this.isEditingSchema = false;
+                this.schemaEditorText = "";
+                this.showToast("Schema removed", "success");
+              } else {
+                this.showToast(j?.error || "Failed to remove schema", "error");
+              }
+            } catch (e) {
+              this.showToast("Failed to remove schema", "error");
+            } finally {
+              this.isSavingSchema = false;
+            }
+          },
+
+          // Indexes actions
+          async refreshIndexes() {
+            const setName = this.selectedSet?.name;
+            const coll = this.selectedCollection;
+            if (!setName || !coll) return;
+            try {
+              const r = await fetch(`/${setName}/${coll}/_indexes`);
+              const j = await r.json();
+              if (j && j.success) {
+                if (!this.collectionInfos[setName])
+                  this.collectionInfos[setName] = {};
+                if (!this.collectionInfos[setName][coll])
+                  this.collectionInfos[setName][coll] = {};
+                this.collectionInfos[setName][coll].indexes = j.data || [];
+              }
+            } catch (e) {
+              console.error("refreshIndexes error", e);
+              this.showToast("Failed to load indexes", "error");
+            }
+          },
+          async createIndex() {
+            const setName = this.selectedSet?.name;
+            const coll = this.selectedCollection;
+            const input = (this.indexPathsInput || "").trim();
+            if (!setName || !coll || !input) return;
+            let body = {};
+            if (input.includes(",")) {
+              const paths = input
+                .split(",")
+                .map((s) => s.trim())
+                .filter(Boolean);
+              if (!paths.length) {
+                this.showToast("Provide at least one path", "error");
+                return;
+              }
+              body = { paths };
+            } else {
+              body = { path: input };
+            }
+            try {
+              this.isCreatingIndex = true;
+              const r = await fetch(`/${setName}/${coll}/_index`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body),
+              });
+              const j = await r.json();
+              if (j && j.success) {
+                this.showToast("Index creation started", "success");
+                this.indexPathsInput = "";
+                await this.refreshIndexes();
+                // refresh once more after a short delay to catch async ready status
+                setTimeout(() => {
+                  this.refreshIndexes();
+                }, 1200);
+              } else {
+                this.showToast(j?.error || "Failed to create index", "error");
+              }
+            } catch (e) {
+              this.showToast("Failed to create index", "error");
+            } finally {
+              this.isCreatingIndex = false;
+            }
+          },
+          async deleteIndex(idx) {
+            const setName = this.selectedSet?.name;
+            const coll = this.selectedCollection;
+            if (!setName || !coll || !idx) return;
+            try {
+              this.isDeletingIndex = idx.name;
+              const paths = (idx.paths || []).join(",");
+              const q = new URLSearchParams();
+              if (paths) q.set("paths", paths);
+              const anyPath = encodeURIComponent(
+                (idx.paths && idx.paths[0]) || "path"
+              );
+              const r = await fetch(
+                `/${setName}/${coll}/_index/${anyPath}?` + q.toString(),
+                { method: "DELETE" }
+              );
+              const j = await r.json();
+              if (j && j.success) {
+                this.showToast("Index deleted", "success");
+                await this.refreshIndexes();
+              } else {
+                this.showToast(j?.error || "Failed to delete index", "error");
+              }
+            } catch (e) {
+              this.showToast("Failed to delete index", "error");
+            } finally {
+              this.isDeletingIndex = null;
             }
           },
 
@@ -1625,12 +2303,26 @@
 
           // Utils
           getTotalCollections() {
+            // Prefer aggregated 'colls' from /_sets; fallback to loaded collections
+            const viaColls = this.sets.reduce(
+              (sum, s) => sum + (s.colls || 0),
+              0
+            );
+            if (viaColls > 0) return viaColls;
             return this.sets.reduce(
               (sum, s) => sum + (s.collections?.length || 0),
               0
             );
           },
           getTotalDocuments() {
+            // Prefer server-provided total docs; fallback to per-set docs, then per-collection counts
+            const sd = Number(this.setsStats?.total_docs || 0);
+            if (sd > 0) return sd;
+            const viaSets = this.sets.reduce(
+              (sum, s) => sum + (s.docs || 0),
+              0
+            );
+            if (viaSets > 0) return viaSets;
             return this.sets.reduce(
               (sum, s) =>
                 sum +

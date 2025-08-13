@@ -11,19 +11,38 @@ import (
 )
 
 func (h *Handlers) ListSets(w http.ResponseWriter, r *http.Request) {
-	rows, err := h.db.Query(`SELECT DISTINCT set_name FROM metadata ORDER BY set_name`)
-	if err != nil {
-		middleware.WriteJSON(w, http.StatusInternalServerError, false, nil, models.Ptr(err.Error()))
-		return
-	}
-	defer rows.Close()
-	var sets []string
-	for rows.Next() {
-		var s string
-		_ = rows.Scan(&s)
-		sets = append(sets, s)
-	}
-	middleware.WriteJSON(w, http.StatusOK, true, sets, nil)
+    // Get number of collections per set from metadata
+    rows, err := h.db.Query(`SELECT set_name, COUNT(*) AS colls FROM metadata GROUP BY set_name ORDER BY set_name`)
+    if err != nil {
+        middleware.WriteJSON(w, http.StatusInternalServerError, false, nil, models.Ptr(err.Error()))
+        return
+    }
+    defer rows.Close()
+
+    // Build response structure
+    setsMap := map[string]map[string]int64{}
+    var totalDocs int64
+    for rows.Next() {
+        var set string
+        var colls int64
+        if err := rows.Scan(&set, &colls); err != nil { continue }
+
+        // Count documents in the physical set table; if table is missing, treat as 0
+        var docs int64
+        if err := h.db.QueryRow("SELECT COUNT(*) FROM "+tableName(set)).Scan(&docs); err != nil {
+            docs = 0
+        }
+        totalDocs += docs
+        setsMap[set] = map[string]int64{"colls": colls, "docs": docs}
+    }
+
+    out := map[string]any{
+        "sets": setsMap,
+        "stats": map[string]any{
+            "total_docs": totalDocs,
+        },
+    }
+    middleware.WriteJSON(w, http.StatusOK, true, out, nil)
 }
 
 func (h *Handlers) GetSetStats(w http.ResponseWriter, r *http.Request) {
