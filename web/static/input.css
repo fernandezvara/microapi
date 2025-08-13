@@ -1,0 +1,42 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+[x-cloak] {
+  display: none !important;
+}
+
+.json-editor {
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+}
+
+.gradient-border {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  padding: 1px;
+}
+
+@layer theme {
+  :root {
+    --radius-md: 0.25rem;
+  }
+}
+
+@layer utilities {
+  /* Default smaller radius for buttons */
+  button,
+  a[role="button"],
+  input,
+  textarea,
+  select {
+    border-radius: var(--radius-md);
+  }
+
+  /* Ensure smaller radius even if rounded-lg/xl is applied */
+  button.rounded-lg,
+  button.rounded-xl,
+  a.rounded-lg,
+  a.rounded-xl,
+  a[role="button"].rounded-lg,
+  a[role="button"].rounded-xl {
+    border-radius: var(--radius-md);
+  }
+}
