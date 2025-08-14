@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  microapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: microapi
+    environment:
+      - PORT=8080
+      - DB_PATH=/data/data.db
+      # Toggle destructive ops if desired
+      # - ALLOW_DELETE_SETS=true
+      # - ALLOW_DELETE_COLLECTIONS=true
+    volumes:
+      # Store SQLite DB in the repo folder
+      - ./:/data
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: n8n
+    depends_on:
+      - microapi
+    ports:
+      - "5678:5678"
+    environment:
+      - GENERIC_TIMEZONE=${TIMEZONE:-UTC}
+      - TZ=${TIMEZONE:-UTC}
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      - N8N_RUNNERS_ENABLED=true
+    volumes:
+      # Persist n8n user data (credentials, workflows, etc.)
+      - n8n_data:/home/node/.n8n
+      # Mount this repo's n8n community node
+      - ../n8n-nodes-microapi:/home/node/.n8n/custom/n8n-nodes-microapi:ro
+    restart: unless-stopped
+
+volumes:
+  n8n_data:
