@@ -776,15 +776,15 @@
                           <div>
                             <span class="opacity-70">Docs:</span>
                             <span
-                              x-text="(getSelectedCollectionInfo().stats?.count || 0)"
+                              x-text="(getSelectedCollectionInfo()?.stats?.count || 0)"
                             ></span>
                           </div>
                           <div
-                            x-show="getSelectedCollectionInfo().stats?.created_at"
+                            x-show="getSelectedCollectionInfo()?.stats?.created_at"
                           >
                             <span class="opacity-70">Created:</span>
                             <span
-                              x-text="formatDate(getSelectedCollectionInfo().stats.created_at)"
+                              x-text="getSelectedCollectionInfo()?.stats?.created_at ? formatDate(getSelectedCollectionInfo().stats.created_at) : '—'"
                             ></span>
                           </div>
                         </div>
