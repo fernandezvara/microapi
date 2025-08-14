@@ -39,7 +39,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	srv := server.New(cfg, db)
+	srv := server.New(cfg, db, version)
 
 	go func() {
 		logger.Info("microapi starting server", slog.String("port", cfg.Port))

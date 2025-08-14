@@ -20,7 +20,7 @@ type Server struct {
 	*chi.Mux
 }
 
-func New(cfg *config.Config, db *sql.DB) *Server {
+func New(cfg *config.Config, db *sql.DB, version string) *Server {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RequestID)
@@ -32,7 +32,7 @@ func New(cfg *config.Config, db *sql.DB) *Server {
 
 	// Health check
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
-		mw.WriteJSON(w, http.StatusOK, true, map[string]string{"status": "ok"}, nil)
+		mw.WriteJSON(w, http.StatusOK, true, map[string]string{"status": "ok", "version": version}, nil)
 	})
 
 	// Register API routes
