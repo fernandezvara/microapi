@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Micro API - Schema-less JSON API in Minutes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+      defer
+      src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: "#f59e0b",
+              secondary: "#d97706",
+              accent: "#fbbf24",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      [x-cloak] {
+        display: none !important;
+      }
+      .code-block {
+        background: #1e293b;
+        color: #e2e8f0;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        overflow-x: auto;
+      }
+      .highlight {
+        color: #fbbf24;
+      }
+      .highlight-green {
+        color: #34d399;
+      }
+      .highlight-blue {
+        color: #60a5fa;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gray-50"
+    x-data="{ activeTab: 'overview', mobileMenuOpen: false }"
+  >
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+          <div class="flex items-center space-x-3">
+            <!-- Logo Placeholder -->
+            <div class="w-10 h-10 rounded-lg flex items-center justify-center">
+              <!-- SVG Logo Placeholder -->
+              <svg
+                class="w-10 h-10 text-white"
+                fill="currentColor"
+                viewBox="0 0 64 64"
+              >
+                <defs>
+                  <style>
+                    .mark {
+                      fill: #ffffff;
+                      font-weight: 700;
+                    }
+                    .chip {
+                      fill: #fbbf24;
+                    }
+                    .pins {
+                      fill: #f59e0b;
+                    }
+                  </style>
+                </defs>
+
+                <!-- Logomark -->
+                <g transform="translate(8,8)">
+                  <!-- chip body -->
+                  <rect
+                    x="0"
+                    y="0"
+                    width="48"
+                    height="48"
+                    rx="12"
+                    class="chip"
+                  />
+                  <!-- chip pins -->
+                  <g class="pins">
+                    <rect x="-6" y="10" width="6" height="4" />
+                    <rect x="-6" y="22" width="6" height="4" />
+                    <rect x="-6" y="34" width="6" height="4" />
+                    <rect x="48" y="10" width="6" height="4" />
+                    <rect x="48" y="22" width="6" height="4" />
+                    <rect x="48" y="34" width="6" height="4" />
+                    <rect x="10" y="-6" width="4" height="6" />
+                    <rect x="22" y="-6" width="4" height="6" />
+                    <rect x="34" y="-6" width="4" height="6" />
+                    <rect x="10" y="48" width="4" height="6" />
+                    <rect x="22" y="48" width="4" height="6" />
+                    <rect x="34" y="48" width="4" height="6" />
+                  </g>
+                  <!-- μ positioned 33% from bottom -->
+                  <text
+                    x="24"
+                    y="32"
+                    font-family="Inter, sans-serif"
+                    font-size="42"
+                    text-anchor="middle"
+                    class="mark"
+                  >
+                    μ
+                  </text>
+                </g>
+              </svg>
+            </div>
+            <span class="text-xl font-bold text-amber-400">Micro API</span>
+          </div>
+
+          <!-- Desktop Navigation -->
+          <div class="hidden md:flex space-x-8">
+            <a
+              href="#features"
+              class="text-gray-700 hover:text-primary transition"
+              >Features</a
+            >
+            <a
+              href="#api-docs"
+              class="text-gray-700 hover:text-primary transition"
+              >API Docs</a
+            >
+            <a href="#n8n" class="text-gray-700 hover:text-primary transition"
+              >n8n Integration</a
+            >
+            <a
+              href="#getting-started"
+              class="text-gray-700 hover:text-primary transition"
+              >Get Started</a
+            >
+          </div>
+
+          <!-- Mobile Menu Button -->
+          <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden">
+            <svg
+              class="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Mobile Navigation -->
+        <div x-show="mobileMenuOpen" x-cloak class="md:hidden py-4 border-t">
+          <a
+            href="#features"
+            class="block py-2 text-gray-700 hover:text-primary"
+            >Features</a
+          >
+          <a
+            href="#api-docs"
+            class="block py-2 text-gray-700 hover:text-primary"
+            >API Docs</a
+          >
+          <a href="#n8n" class="block py-2 text-gray-700 hover:text-primary"
+            >n8n Integration</a
+          >
+          <a
+            href="#getting-started"
+            class="block py-2 text-gray-700 hover:text-primary"
+            >Get Started</a
+          >
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section
+      class="bg-gradient-to-br from-amber-500 to-amber-700 text-white py-20"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+          <h1 class="text-5xl md:text-6xl font-bold mb-6">
+            Schema-less JSON API
+            <span class="text-amber-300">in Minutes</span>
+          </h1>
+          <p class="text-xl md:text-2xl mb-8 text-amber-100 max-w-3xl mx-auto">
+            Create dynamic collections, store any JSON structure, and query with
+            MongoDB-like syntax. No setup, no migrations, just pure
+            productivity.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="#getting-started"
+              class="bg-white hover:bg-amber-50 text-amber-700 px-8 py-3 rounded-lg font-semibold transition"
+            >
+              Get Started Now
+            </a>
+            <a
+              href="#demo"
+              class="border-2 border-white hover:bg-white hover:text-amber-700 px-8 py-3 rounded-lg font-semibold transition"
+            >
+              View Demo
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Demo -->
+    <section id="demo" class="py-16 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl font-bold text-gray-900 mb-4">
+            See It In Action
+          </h2>
+          <p class="text-lg text-gray-600">From zero to API in 30 seconds</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8">
+          <!-- Code Example -->
+          <div>
+            <h3 class="text-xl font-semibold mb-4">1. Start the server</h3>
+            <div class="code-block mb-6">
+              <pre><span class="highlight">$</span> ./micro-api
+<span class="highlight-green">✓</span> Server started on port 8080
+<span class="highlight-green">✓</span> Dashboard: http://localhost:8080
+<span class="highlight-green">✓</span> SQLite database ready</pre>
+            </div>
+
+            <h3 class="text-xl font-semibold mb-4">
+              2. Create your first document
+            </h3>
+            <div class="code-block">
+              <pre><span class="highlight">POST</span> /users/customers
+{
+  <span class="highlight-blue">"name"</span>: <span class="highlight-green">"John Doe"</span>,
+  <span class="highlight-blue">"email"</span>: <span class="highlight-green">"john@example.com"</span>,
+  <span class="highlight-blue">"preferences"</span>: {
+    <span class="highlight-blue">"theme"</span>: <span class="highlight-green">"dark"</span>,
+    <span class="highlight-blue">"notifications"</span>: <span class="highlight">true</span>
+  }
+}</pre>
+            </div>
+          </div>
+
+          <!-- Features List -->
+          <div class="space-y-6">
+            <div class="flex items-start space-x-3">
+              <div
+                class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mt-1"
+              >
+                <svg
+                  class="w-5 h-5 text-green-600"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-semibold text-gray-900">
+                  No Schema Definition
+                </h4>
+                <p class="text-gray-600">
+                  Store any JSON structure without pre-defining schemas
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start space-x-3">
+              <div
+                class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mt-1"
+              >
+                <svg
+                  class="w-5 h-5 text-green-600"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-semibold text-gray-900">Dynamic Collections</h4>
+                <p class="text-gray-600">
+                  Collections are created automatically on first document
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start space-x-3">
+              <div
+                class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mt-1"
+              >
+                <svg
+                  class="w-5 h-5 text-green-600"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-semibold text-gray-900">
+                  MongoDB-like Queries
+                </h4>
+                <p class="text-gray-600">
+                  Familiar query syntax with powerful operators
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-start space-x-3">
+              <div
+                class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center mt-1"
+              >
+                <svg
+                  class="w-5 h-5 text-green-600"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-semibold text-gray-900">
+                  Built-in Web Dashboard
+                </h4>
+                <p class="text-gray-600">
+                  Visual interface for managing your data
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-16 bg-gray-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl font-bold text-gray-900 mb-4">
+            Everything You Need
+          </h2>
+          <p class="text-lg text-gray-600">
+            Built for developers who value simplicity and speed
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div class="bg-white p-6 rounded-lg shadow-sm border">
+            <div
+              class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-4"
+            >
+              <svg
+                class="w-6 h-6 text-amber-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Lightning Fast Setup</h3>
+            <p class="text-gray-600">
+              Single binary deployment. No external dependencies. Just run and
+              go.
+            </p>
+          </div>
+
+          <div class="bg-white p-6 rounded-lg shadow-sm border">
+            <div
+              class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-4"
+            >
+              <svg
+                class="w-6 h-6 text-amber-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"
+                />
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">SQLite Powered</h3>
+            <p class="text-gray-600">
+              Reliable, fast, and zero-config database with JSON support
+              built-in.
+            </p>
+          </div>
+
+          <div class="bg-white p-6 rounded-lg shadow-sm border">
+            <div
+              class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-4"
+            >
+              <svg
+                class="w-6 h-6 text-amber-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+                />
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">RESTful API</h3>
+            <p class="text-gray-600">
+              Clean, predictable REST endpoints with consistent JSON responses.
+            </p>
+          </div>
+
+          <div class="bg-white p-6 rounded-lg shadow-sm border">
+            <div
+              class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-4"
+            >
+              <svg
+                class="w-6 h-6 text-amber-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Advanced Querying</h3>
+            <p class="text-gray-600">
+              MongoDB-like operators for filtering, sorting, and pagination.
+            </p>
+          </div>
+
+          <div class="bg-white p-6 rounded-lg shadow-sm border">
+            <div
+              class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-4"
+            >
+              <svg
+                class="w-6 h-6 text-amber-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Web Dashboard</h3>
+            <p class="text-gray-600">
+              Built-in visual interface for managing collections and testing
+              queries.
+            </p>
+          </div>
+
+          <div class="bg-white p-6 rounded-lg shadow-sm border">
+            <div
+              class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-4"
+            >
+              <svg
+                class="w-6 h-6 text-amber-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                />
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">MCP Support</h3>
+            <p class="text-gray-600">
+              Model Context Protocol endpoint for AI assistant integrations.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- API Documentation -->
+    <section id="api-docs" class="py-16 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl font-bold text-gray-900 mb-4">
+            API Documentation
+          </h2>
+          <p class="text-lg text-gray-600">
+            Simple, powerful, and well-documented
+          </p>
+        </div>
+
+        <!-- API Tabs -->
+        <div class="mb-8">
+          <nav class="flex space-x-8 border-b border-gray-200">
+            <button
+              @click="activeTab = 'overview'"
+              :class="activeTab === 'overview' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+              class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm"
+            >
+              Overview
+            </button>
+            <button
+              @click="activeTab = 'crud'"
+              :class="activeTab === 'crud' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+              class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm"
+            >
+              CRUD Operations
+            </button>
+            <button
+              @click="activeTab = 'queries'"
+              :class="activeTab === 'queries' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+              class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm"
+            >
+              Queries
+            </button>
+            <button
+              @click="activeTab = 'responses'"
+              :class="activeTab === 'responses' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+              class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm"
+            >
+              Responses
+            </button>
+          </nav>
+        </div>
+
+        <!-- Tab Content -->
+        <div x-show="activeTab === 'overview'" x-cloak>
+          <div class="grid md:grid-cols-2 gap-8">
+            <div>
+              <h3 class="text-xl font-semibold mb-4">URL Structure</h3>
+              <div class="code-block mb-6">
+                <pre><span class="highlight">Base URL:</span> http://localhost:8080
+
+<span class="highlight">Pattern:</span> /:set/:collection[/:id]
+
+<span class="highlight">Examples:</span>
+/users/customers          <span class="highlight-green"># Collection operations</span>
+/users/customers/abc123   <span class="highlight-green"># Document operations</span>
+/blog/posts              <span class="highlight-green"># Different set</span></pre>
+              </div>
+
+              <h3 class="text-xl font-semibold mb-4">Authentication</h3>
+              <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                <p class="text-green-800">
+                  ✅ No authentication required by default
+                </p>
+                <p class="text-sm text-green-600 mt-1">
+                  Perfect for prototyping and internal tools
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-semibold mb-4">Content Type</h3>
+              <div class="code-block mb-6">
+                <pre><span class="highlight">Content-Type:</span> application/json
+<span class="highlight">Accept:</span> application/json</pre>
+              </div>
+
+              <h3 class="text-xl font-semibold mb-4">HTTP Methods</h3>
+              <div class="space-y-2">
+                <div class="flex justify-between p-2 bg-gray-50 rounded">
+                  <span class="font-mono text-sm">GET</span>
+                  <span class="text-sm text-gray-600">Retrieve data</span>
+                </div>
+                <div class="flex justify-between p-2 bg-gray-50 rounded">
+                  <span class="font-mono text-sm">POST</span>
+                  <span class="text-sm text-gray-600">Create documents</span>
+                </div>
+                <div class="flex justify-between p-2 bg-gray-50 rounded">
+                  <span class="font-mono text-sm">PUT</span>
+                  <span class="text-sm text-gray-600">Replace documents</span>
+                </div>
+                <div class="flex justify-between p-2 bg-gray-50 rounded">
+                  <span class="font-mono text-sm">PATCH</span>
+                  <span class="text-sm text-gray-600">Update documents</span>
+                </div>
+                <div class="flex justify-between p-2 bg-gray-50 rounded">
+                  <span class="font-mono text-sm">DELETE</span>
+                  <span class="text-sm text-gray-600">Remove documents</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div x-show="activeTab === 'crud'" x-cloak>
+          <div class="space-y-8">
+            <div>
+              <h3 class="text-xl font-semibold mb-4">Create Document</h3>
+              <div class="code-block">
+                <pre><span class="highlight">POST</span> /users/customers
+
+{
+  <span class="highlight-blue">"name"</span>: <span class="highlight-green">"Alice Johnson"</span>,
+  <span class="highlight-blue">"email"</span>: <span class="highlight-green">"alice@example.com"</span>,
+  <span class="highlight-blue">"age"</span>: <span class="highlight">28</span>,
+  <span class="highlight-blue">"preferences"</span>: {
+    <span class="highlight-blue">"theme"</span>: <span class="highlight-green">"dark"</span>,
+    <span class="highlight-blue">"language"</span>: <span class="highlight-green">"en"</span>
+  }
+}</pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-semibold mb-4">Get Document by ID</h3>
+              <div class="code-block">
+                <pre><span class="highlight">GET</span> /users/customers/ch72gsb320000000aa91kx6q</pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-semibold mb-4">
+                Update Document (Partial)
+              </h3>
+              <div class="code-block">
+                <pre><span class="highlight">PATCH</span> /users/customers/ch72gsb320000000aa91kx6q
+
+{
+  <span class="highlight-blue">"age"</span>: <span class="highlight">29</span>,
+  <span class="highlight-blue">"preferences.theme"</span>: <span class="highlight-green">"light"</span>
+}</pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-semibold mb-4">Delete Document</h3>
+              <div class="code-block">
+                <pre><span class="highlight">DELETE</span> /users/customers/ch72gsb320000000aa91kx6q</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div x-show="activeTab === 'queries'" x-cloak>
+          <div class="space-y-8">
+            <div>
+              <h3 class="text-xl font-semibold mb-4">Basic Query</h3>
+              <div class="code-block">
+                <pre><span class="highlight">GET</span> /users/customers</pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-semibold mb-4">Filter with WHERE</h3>
+              <div class="code-block">
+                <pre><span class="highlight">GET</span> /users/customers?where={"age":{"$gte":25}}</pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-semibold mb-4">Nested Field Query</h3>
+              <div class="code-block">
+                <pre><span class="highlight">GET</span> /users/customers?where={"preferences.theme":{"$eq":"dark"}}</pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-semibold mb-4">Sorting and Pagination</h3>
+              <div class="code-block">
+                <pre><span class="highlight">GET</span> /users/customers?order_by=age&limit=10&offset=20</pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-semibold mb-4">Available Operators</h3>
+              <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <h4 class="font-semibold mb-2">Comparison</h4>
+                  <ul class="space-y-1 text-sm">
+                    <li>
+                      <code class="bg-white px-2 py-1 rounded">$eq</code> -
+                      Equal
+                    </li>
+                    <li>
+                      <code class="bg-white px-2 py-1 rounded">$ne</code> - Not
+                      equal
+                    </li>
+                    <li>
+                      <code class="bg-white px-2 py-1 rounded">$gt</code> -
+                      Greater than
+                    </li>
+                    <li>
+                      <code class="bg-white px-2 py-1 rounded">$gte</code> -
+                      Greater than or equal
+                    </li>
+                    <li>
+                      <code class="bg-white px-2 py-1 rounded">$lt</code> - Less
+                      than
+                    </li>
+                    <li>
+                      <code class="bg-white px-2 py-1 rounded">$lte</code> -
+                      Less than or equal
+                    </li>
+                  </ul>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg">
+                  <h4 class="font-semibold mb-2">Future Operators</h4>
+                  <ul class="space-y-1 text-sm text-gray-500">
+                    <li>
+                      <code class="bg-white px-2 py-1 rounded">$in</code> - In
+                      array
+                    </li>
+                    <li>
+                      <code class="bg-white px-2 py-1 rounded">$nin</code> - Not
+                      in array
+                    </li>
+                    <li>
+                      <code class="bg-white px-2 py-1 rounded">$regex</code> -
+                      Pattern match
+                    </li>
+                    <li>
+                      <code class="bg-white px-2 py-1 rounded">$exists</code> -
+                      Field exists
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div x-show="activeTab === 'responses'" x-cloak>
+          <div class="space-y-8">
+            <div>
+              <h3 class="text-xl font-semibold mb-4">Success Response</h3>
+              <div class="code-block">
+                <pre>{
+  <span class="highlight-blue">"success"</span>: <span class="highlight">true</span>,
+  <span class="highlight-blue">"data"</span>: {
+    <span class="highlight-blue">"_id"</span>: <span class="highlight-green">"ch72gsb320000000aa91kx6q"</span>,
+    <span class="highlight-blue">"name"</span>: <span class="highlight-green">"Alice Johnson"</span>,
+    <span class="highlight-blue">"email"</span>: <span class="highlight-green">"alice@example.com"</span>,
+    <span class="highlight-blue">"age"</span>: <span class="highlight">28</span>
+  },
+  <span class="highlight-blue">"error"</span>: <span class="highlight">null</span>
+}</pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-semibold mb-4">Error Response</h3>
+              <div class="code-block">
+                <pre>{
+  <span class="highlight-blue">"success"</span>: <span class="highlight">false</span>,
+  <span class="highlight-blue">"data"</span>: <span class="highlight">null</span>,
+  <span class="highlight-blue">"error"</span>: <span class="highlight-green">"Document not found"</span>
+}</pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-semibold mb-4">
+                Collection Query Response
+              </h3>
+              <div class="code-block">
+                <pre>{
+  <span class="highlight-blue">"success"</span>: <span class="highlight">true</span>,
+  <span class="highlight-blue">"data"</span>: [
+    {
+      <span class="highlight-blue">"_id"</span>: <span class="highlight-green">"ch72gsb320000000aa91kx6q"</span>,
+      <span class="highlight-blue">"name"</span>: <span class="highlight-green">"Alice Johnson"</span>,
+      <span class="highlight-blue">"age"</span>: <span class="highlight">28</span>
+    },
+    {
+      <span class="highlight-blue">"_id"</span>: <span class="highlight-green">"ch72gsb320000000aa91kx7r"</span>,
+      <span class="highlight-blue">"name"</span>: <span class="highlight-green">"Bob Smith"</span>,
+      <span class="highlight-blue">"age"</span>: <span class="highlight">32</span>
+    }
+  ],
+  <span class="highlight-blue">"error"</span>: <span class="highlight">null</span>
+}</pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-semibold mb-4">HTTP Status Codes</h3>
+              <div class="grid md:grid-cols-2 gap-4">
+                <div class="space-y-2">
+                  <div class="flex justify-between p-2 bg-green-50 rounded">
+                    <span class="font-mono text-sm">200</span>
+                    <span class="text-sm text-green-700">Success</span>
+                  </div>
+                  <div class="flex justify-between p-2 bg-green-50 rounded">
+                    <span class="font-mono text-sm">201</span>
+                    <span class="text-sm text-green-700">Created</span>
+                  </div>
+                  <div class="flex justify-between p-2 bg-red-50 rounded">
+                    <span class="font-mono text-sm">400</span>
+                    <span class="text-sm text-red-700">Bad Request</span>
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <div class="flex justify-between p-2 bg-red-50 rounded">
+                    <span class="font-mono text-sm">404</span>
+                    <span class="text-sm text-red-700">Not Found</span>
+                  </div>
+                  <div class="flex justify-between p-2 bg-red-50 rounded">
+                    <span class="font-mono text-sm">413</span>
+                    <span class="text-sm text-red-700">Payload Too Large</span>
+                  </div>
+                  <div class="flex justify-between p-2 bg-red-50 rounded">
+                    <span class="font-mono text-sm">500</span>
+                    <span class="text-sm text-red-700">Server Error</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- n8n Integration -->
+    <section
+      id="n8n"
+      class="py-16 bg-gradient-to-r from-amber-600 to-amber-800 text-white"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl font-bold mb-4">n8n Integration</h2>
+          <p class="text-xl text-amber-100">
+            Automate everything with our custom n8n node
+          </p>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <h3 class="text-2xl font-bold mb-6">No-Code Data Operations</h3>
+            <div class="space-y-4">
+              <div class="flex items-start space-x-3">
+                <div
+                  class="w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center mt-1"
+                >
+                  <svg
+                    class="w-5 h-5 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h4 class="font-semibold">Visual Workflow Builder</h4>
+                  <p class="text-gray-100">
+                    Drag and drop Micro API operations into your workflows
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-start space-x-3">
+                <div
+                  class="w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center mt-1"
+                >
+                  <svg
+                    class="w-5 h-5 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h4 class="font-semibold">Full CRUD Support</h4>
+                  <p class="text-gray-100">
+                    Create, read, update, delete, and query operations
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-start space-x-3">
+                <div
+                  class="w-8 h-8 bg-amber-400 rounded-full flex items-center justify-center mt-1"
+                >
+                  <svg
+                    class="w-5 h-5 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clip-rule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h4 class="font-semibold">Easy Installation</h4>
+                  <p class="text-gray-100">
+                    Simple npm install and configuration
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-8">
+              <a
+                href="#n8n-install"
+                class="bg-white text-amber-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition"
+              >
+                Install n8n Node
+              </a>
+            </div>
+          </div>
+
+          <div class="bg-white/20 backdrop-blur rounded-lg p-6">
+            <h4 class="text-lg font-semibold mb-4">Installation</h4>
+            <div class="code-block">
+              <pre><span class="highlight"># Install globally</span>
+npm install -g n8n-nodes-micro-api
+
+<span class="highlight"># Or install locally</span>
+cd ~/.n8n/custom
+npm install n8n-nodes-micro-api
+
+<span class="highlight"># Restart n8n</span>
+n8n start</pre>
+            </div>
+
+            <h4 class="text-lg font-semibold mb-4 mt-6">Configuration</h4>
+            <div class="bg-amber-700/50 rounded p-4">
+              <p class="text-sm text-amber-100 mb-2">
+                1. Add Micro API credentials
+              </p>
+              <p class="text-sm text-amber-100 mb-2">
+                2. Set your API base URL
+              </p>
+              <p class="text-sm text-amber-100">3. Start building workflows!</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-12">
+          <img src="/images/n8n.png" alt="n8n" class="mx-auto mb-6" />
+
+          <h3 class="text-2xl font-bold text-center mb-8">Common Use Cases</h3>
+          <div class="grid md:grid-cols-3 gap-6">
+            <div class="bg-white/10 backdrop-blur rounded-lg p-6">
+              <h4 class="font-semibold mb-3">🔄 Data Sync</h4>
+              <p class="text-purple-100 text-sm">
+                Sync data between Micro API and other services like Airtable,
+                Google Sheets, or CRM systems.
+              </p>
+            </div>
+            <div class="bg-white/10 backdrop-blur rounded-lg p-6">
+              <h4 class="font-semibold mb-3">📊 Form Processing</h4>
+              <p class="text-purple-100 text-sm">
+                Capture form submissions and store them with custom processing
+                and validation rules.
+              </p>
+            </div>
+            <div class="bg-white/10 backdrop-blur rounded-lg p-6">
+              <h4 class="font-semibold mb-3">🤖 AI Workflows</h4>
+              <p class="text-purple-100 text-sm">
+                Use AI to process data from Micro API and trigger actions based
+                on analysis results.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Web Dashboard -->
+    <section class="py-16 bg-white">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl font-bold text-gray-900 mb-4">
+            Built-in Web Dashboard
+          </h2>
+          <p class="text-lg text-gray-600">
+            Manage your data visually - no code required
+          </p>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <h3 class="text-2xl font-bold mb-6">Everything You Need</h3>
+            <div class="space-y-6">
+              <div class="flex items-start space-x-4">
+                <div
+                  class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center"
+                >
+                  <svg
+                    class="w-5 h-5 text-amber-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-900">
+                    Browse Collections
+                  </h4>
+                  <p class="text-gray-600">
+                    See all your sets and collections with document counts and
+                    creation dates
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-start space-x-4">
+                <div
+                  class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center"
+                >
+                  <svg
+                    class="w-5 h-5 text-amber-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-900">JSON Editor</h4>
+                  <p class="text-gray-600">
+                    Create and edit documents with syntax highlighting and
+                    validation
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-start space-x-4">
+                <div
+                  class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center"
+                >
+                  <svg
+                    class="w-5 h-5 text-amber-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-900">Query Builder</h4>
+                  <p class="text-gray-600">
+                    Test queries interactively with a visual interface
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-start space-x-4">
+                <div
+                  class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center"
+                >
+                  <svg
+                    class="w-5 h-5 text-amber-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+                    />
+                  </svg>
+                </div>
+                <div>
+                  <h4 class="font-semibold text-gray-900">API Examples</h4>
+                  <p class="text-gray-600">
+                    See curl examples for every operation to learn the API
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-gray-100 rounded-lg p-8">
+            <div class="bg-white rounded-lg shadow-sm p-6">
+              <div class="flex items-center justify-between mb-4">
+                <h4 class="text-lg font-semibold">Dashboard Preview</h4>
+                <div class="flex space-x-2">
+                  <div class="w-3 h-3 bg-red-400 rounded-full"></div>
+                  <div class="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                  <div class="w-3 h-3 bg-green-400 rounded-full"></div>
+                </div>
+              </div>
+
+              <div class="space-y-4">
+                <div class="bg-gray-50 rounded p-3">
+                  <div class="flex justify-between items-center">
+                    <span class="font-medium">📁 users</span>
+                    <span class="text-sm text-gray-500">2 collections</span>
+                  </div>
+                </div>
+
+                <div class="ml-4 space-y-2">
+                  <div class="bg-amber-50 rounded p-2 text-sm">
+                    <div class="flex justify-between">
+                      <span>customers</span>
+                      <span class="text-gray-500">156 docs</span>
+                    </div>
+                  </div>
+                  <div class="bg-amber-50 rounded p-2 text-sm">
+                    <div class="flex justify-between">
+                      <span>admins</span>
+                      <span class="text-gray-500">3 docs</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="bg-gray-50 rounded p-3">
+                  <div class="flex justify-between items-center">
+                    <span class="font-medium">📁 blog</span>
+                    <span class="text-sm text-gray-500">1 collection</span>
+                  </div>
+                </div>
+
+                <div class="ml-4">
+                  <div class="bg-amber-50 rounded p-2 text-sm">
+                    <div class="flex justify-between">
+                      <span>posts</span>
+                      <span class="text-gray-500">42 docs</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-6 pt-4 border-t">
+                <button
+                  class="w-full bg-amber-500 text-white py-2 rounded text-sm hover:bg-amber-600 transition"
+                >
+                  + New Document
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Getting Started -->
+    <section id="getting-started" class="py-16 bg-gray-50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <h2 class="text-3xl font-bold text-gray-900 mb-4">
+            Get Started in Minutes
+          </h2>
+          <p class="text-lg text-gray-600">
+            From download to your first API call
+          </p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8 mb-12">
+          <div class="text-center">
+            <div
+              class="w-16 h-16 bg-amber-500 rounded-full flex items-center justify-center mx-auto mb-4"
+            >
+              <span class="text-2xl font-bold text-white">1</span>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Download & Run</h3>
+            <p class="text-gray-600">Single binary, no dependencies</p>
+          </div>
+
+          <div class="text-center">
+            <div
+              class="w-16 h-16 bg-amber-500 rounded-full flex items-center justify-center mx-auto mb-4"
+            >
+              <span class="text-2xl font-bold text-white">2</span>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Send JSON</h3>
+            <p class="text-gray-600">POST your first document</p>
+          </div>
+
+          <div class="text-center">
+            <div
+              class="w-16 h-16 bg-amber-500 rounded-full flex items-center justify-center mx-auto mb-4"
+            >
+              <span class="text-2xl font-bold text-white">3</span>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Query & Scale</h3>
+            <p class="text-gray-600">Build your application</p>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-sm border p-8">
+          <h3 class="text-2xl font-bold mb-6 text-center">Quick Start Guide</h3>
+
+          <div class="grid lg:grid-cols-2 gap-8">
+            <div>
+              <h4 class="text-lg font-semibold mb-4">1. Installation</h4>
+              <div class="code-block mb-6">
+                <pre><span class="highlight"># Download binary</span>
+wget https://github.com/yourorg/micro-api/releases/latest/download/micro-api
+
+<span class="highlight"># Make executable</span>
+chmod +x micro-api
+
+<span class="highlight"># Run with default settings</span>
+./micro-api
+
+<span class="highlight-green">✓ Server started on port 8080</span>
+<span class="highlight-green">✓ Dashboard: http://localhost:8080</span></pre>
+              </div>
+
+              <h4 class="text-lg font-semibold mb-4">
+                2. Configuration (Optional)
+              </h4>
+              <div class="code-block">
+                <pre><span class="highlight"># Create .env file</span>
+PORT=8080
+DB_PATH=./data.db
+CORS=*
+ALLOW_DELETE_SETS=false</pre>
+              </div>
+            </div>
+
+            <div>
+              <h4 class="text-lg font-semibold mb-4">3. First API Call</h4>
+              <div class="code-block mb-6">
+                <pre><span class="highlight">curl -X POST</span> http://localhost:8080/app/users \
+  <span class="highlight">-H</span> <span class="highlight-green">"Content-Type: application/json"</span> \
+  <span class="highlight">-d</span> <span class="highlight-green">'{
+    "name": "Alice",
+    "email": "alice@example.com",
+    "role": "admin"
+  }'</span>
+
+<span class="highlight-green"># Response:</span>
+{
+  <span class="highlight-blue">"success"</span>: <span class="highlight">true</span>,
+  <span class="highlight-blue">"data"</span>: {
+    <span class="highlight-blue">"_id"</span>: <span class="highlight-green">"ch72gsb320000000aa91kx6q"</span>,
+    <span class="highlight-blue">"name"</span>: <span class="highlight-green">"Alice"</span>,
+    <span class="highlight-blue">"email"</span>: <span class="highlight-green">"alice@example.com"</span>,
+    <span class="highlight-blue">"role"</span>: <span class="highlight-green">"admin"</span>
+  },
+  <span class="highlight-blue">"error"</span>: <span class="highlight">null</span>
+}</pre>
+              </div>
+
+              <h4 class="text-lg font-semibold mb-4">4. Query Your Data</h4>
+              <div class="code-block">
+                <pre><span class="highlight"># Get all users</span>
+curl http://localhost:8080/app/users
+
+<span class="highlight"># Filter by role</span>
+curl "http://localhost:8080/app/users?where={\"role\":{\"$eq\":\"admin\"}}"</pre>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-8 text-center">
+            <a
+              href="#"
+              class="bg-amber-500 hover:bg-amber-600 text-white px-8 py-3 rounded-lg font-semibold transition mr-4"
+            >
+              Download Now
+            </a>
+            <a
+              href="#"
+              class="border-2 border-amber-500 text-amber-600 hover:bg-amber-500 hover:text-white px-8 py-3 rounded-lg font-semibold transition"
+            >
+              View on GitHub
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid md:grid-cols-4 gap-8">
+          <div>
+            <div class="flex items-center space-x-3 mb-4">
+              <span class="text-xl font-bold">Micro API</span>
+            </div>
+            <p class="text-gray-400">
+              Schema-less JSON API that just works. Build faster, deploy easier.
+            </p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold mb-4">Documentation</h3>
+            <ul class="space-y-2 text-gray-400">
+              <li>
+                <a href="#api-docs" class="hover:text-white transition"
+                  >API Reference</a
+                >
+              </li>
+              <li>
+                <a href="#getting-started" class="hover:text-white transition"
+                  >Quick Start</a
+                >
+              </li>
+              <!-- <li>
+                <a href="#" class="hover:text-white transition">Examples</a>
+              </li>
+              <li><a href="#" class="hover:text-white transition">FAQ</a></li> -->
+            </ul>
+          </div>
+
+          <div>
+            <h3 class="font-semibold mb-4">Integration</h3>
+            <ul class="space-y-2 text-gray-400">
+              <li>
+                <a href="#n8n" class="hover:text-white transition">n8n Node</a>
+              </li>
+              <!-- <li>
+                <a href="#" class="hover:text-white transition">MCP Protocol</a>
+              </li>
+              <li>
+                <a href="#" class="hover:text-white transition">Docker Image</a>
+              </li>
+              <li><a href="#" class="hover:text-white transition">SDKs</a></li> -->
+            </ul>
+          </div>
+
+          <div>
+            <!-- <h3 class="font-semibold mb-4">Community</h3>
+            <ul class="space-y-2 text-gray-400">
+              <li>
+                <a href="#" class="hover:text-white transition">GitHub</a>
+              </li>
+              <li>
+                <a href="#" class="hover:text-white transition">Issues</a>
+              </li>
+              <li>
+                <a href="#" class="hover:text-white transition">Discussions</a>
+              </li>
+              <li>
+                <a href="#" class="hover:text-white transition">Contributing</a>
+              </li>
+            </ul> -->
+          </div>
+        </div>
+
+        <div
+          class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400"
+        >
+          <p>&copy; 2025 Micro API. Open source and free to use.</p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
