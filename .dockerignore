@@ -1,0 +1,35 @@
+# General
+.git
+.gitignore
+.vscode/
+.idea/
+.DS_Store
+*.log
+
+# Environment files (set vars via compose instead)
+.env
+.env.*
+
+# Node / n8n artifacts
+node_modules/
+npm-debug.log
+n8n/node_modules/
+n8n/dist/
+n8n/.turbo/
+n8n/.cache/
+
+# Build outputs
+/dist/
+/build/
+coverage/
+tmp/
+
+# Databases & temp data
+*.db
+*.sqlite
+*.sqlite3
+/data/
+
+# Docker/local
+.docker/
+**/docker-compose.override.yml
