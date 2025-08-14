@@ -290,6 +290,7 @@
                   />
                 </svg>
               </button>
+
               <button
                 @click="openHealthModal()"
                 :title="healthOk === false ? ('Health error: ' + (lastHealthError || '')) : 'View health'"
@@ -313,6 +314,11 @@
                   />
                 </svg>
               </button>
+              <span
+                x-show="serverVersion"
+                class="px-2 py-1 text-xs rounded bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200 font-medium select-all"
+                x-text="'v: ' + serverVersion"
+              ></span>
             </div>
           </div>
         </header>
@@ -600,7 +606,8 @@
                             target="_blank"
                             rel="noopener noreferrer"
                             class="text-amber-600 hover:text-amber-700 underline"
-                          >https://json-schema.org/learn/getting-started-step-by-step</a>
+                            >https://json-schema.org/learn/getting-started-step-by-step</a
+                          >
                         </p>
                         <div class="mt-2 flex items-center gap-2">
                           <button
@@ -1003,7 +1010,7 @@
                           </div>
                           <pre
                             class="text-sm text-gray-700 dark:text-gray-300 json-editor overflow-hidden max-h-20"
-                            x-text="JSON.stringify(Object.fromEntries(Object.entries(doc).filter(([k]) => k !== '_meta')), null, 2).slice(0, 200) + '...'"
+                            x-text="JSON.stringify(Object.fromEntries(Object.entries(doc).filter(([k]) => k !== '_meta')), null, 2).slice(0, 200)"
                           ></pre>
                         </div>
                       </template>
@@ -1544,6 +1551,7 @@
 
           // Health
           healthResponse: "",
+          serverVersion: "",
           healthOk: null,
           lastHealthError: "",
           healthTimerId: null,
@@ -1617,6 +1625,10 @@
                 j = JSON.parse(text);
               } catch {}
               if (j) pretty = JSON.stringify(j, null, 2);
+
+              if (this.serverVersion !== (j && j.data && j.data.version)) {
+                this.serverVersion = j.data.version;
+              }
               const ok = r.ok && !(j && j.success === false);
               this.healthOk = ok;
               if (!ok) {
@@ -1806,7 +1818,8 @@
                 const params = new URLSearchParams();
                 params.set("limit", 1);
                 const r = await fetch(
-                  `/${this.selectedSet.name}/${this.selectedCollection}?` + params.toString()
+                  `/${this.selectedSet.name}/${this.selectedCollection}?` +
+                    params.toString()
                 );
                 const j = await r.json();
                 if (j && j.success && Array.isArray(j.data) && j.data.length) {
@@ -1824,7 +1837,11 @@
                 title: this.selectedCollection || "Document",
                 ...(inferred && inferred.type === "object"
                   ? { ...inferred, additionalProperties: false }
-                  : { type: "object", additionalProperties: false, properties: {} }),
+                  : {
+                      type: "object",
+                      additionalProperties: false,
+                      properties: {},
+                    }),
               };
               this.schemaSource = "sample";
             } else {
@@ -1870,7 +1887,10 @@
               const out = [];
               for (const s of arr) {
                 const key = JSON.stringify(s);
-                if (!seen.has(key)) { seen.add(key); out.push(s); }
+                if (!seen.has(key)) {
+                  seen.add(key);
+                  out.push(s);
+                }
               }
               return out;
             };
@@ -1878,16 +1898,18 @@
               const t = typeOf(v);
               if (t === "null" || t === "undefined") return null;
               if (t === "string") return { type: "string" };
-              if (t === "number") return Number.isInteger(v) ? { type: "integer" } : { type: "number" };
+              if (t === "number")
+                return Number.isInteger(v)
+                  ? { type: "integer" }
+                  : { type: "number" };
               if (t === "boolean") return { type: "boolean" };
               if (t === "array") {
                 const itemSchemas = dedupe(
-                  (v || [])
-                    .map((el) => infer(el))
-                    .filter(Boolean)
+                  (v || []).map((el) => infer(el)).filter(Boolean)
                 );
                 if (itemSchemas.length === 0) return { type: "array" };
-                if (itemSchemas.length === 1) return { type: "array", items: itemSchemas[0] };
+                if (itemSchemas.length === 1)
+                  return { type: "array", items: itemSchemas[0] };
                 return { type: "array", items: { anyOf: itemSchemas } };
               }
               if (t === "object") {
@@ -1905,7 +1927,9 @@
               }
               return null;
             };
-            return infer(value) || { type: "object", properties: {}, required: [] };
+            return (
+              infer(value) || { type: "object", properties: {}, required: [] }
+            );
           },
           cancelSchemaEdit() {
             this.isEditingSchema = false;
