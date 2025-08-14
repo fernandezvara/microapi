@@ -14,6 +14,8 @@ import (
 	"microapi/internal/server"
 )
 
+var version string = "dev"
+
 func main() {
 	// Structured logger
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
@@ -40,9 +42,10 @@ func main() {
 	srv := server.New(cfg, db)
 
 	go func() {
-		logger.Info("starting server", slog.String("port", cfg.Port))
+		logger.Info("microapi starting server", slog.String("port", cfg.Port))
+		logger.Info("microapi version", slog.String("version", version))
 		if err := http.ListenAndServe(":"+cfg.Port, srv); err != nil && err != http.ErrServerClosed {
-			logger.Error("server error", slog.String("error", err.Error()))
+			logger.Error("microapi server error", slog.String("error", err.Error()))
 			os.Exit(1)
 		}
 	}()
