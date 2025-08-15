@@ -49,8 +49,7 @@ dockers:
     dockerfile: Dockerfile
     use: buildx
     goarch: amd64
-    files:
-      - dist/microapi_linux_amd64_v1/microapi
+    goos: linux
     build_flag_templates:
       - --label=org.opencontainers.image.created={{.Date}}
       - --label=org.opencontainers.image.name={{.ProjectName}}
@@ -65,8 +64,7 @@ dockers:
       - ghcr.io/fernandezvara/microapi:{{ .Tag }}-arm64
     dockerfile: Dockerfile
     goarch: arm64
-    files:
-      - dist/microapi_linux_arm64_v8.0/microapi
+    goos: linux
     build_flag_templates:
       - --label=org.opencontainers.image.created={{.Date}}
       - --label=org.opencontainers.image.name={{.ProjectName}}
