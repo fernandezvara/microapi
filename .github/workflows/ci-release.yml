@@ -81,7 +81,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: dev-binaries-${{ steps.prep.outputs.short_sha }}
+          name: dev-binaries-${{ matrix.goos }}-${{ matrix.goarch }}-${{ steps.prep.outputs.short_sha }}
           path: dist/*
           if-no-files-found: error
 
