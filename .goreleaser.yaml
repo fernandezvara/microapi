@@ -27,6 +27,7 @@ builds:
       - -trimpath
     ldflags:
       - -s -w -X main.version={{.Tag}}
+    main: ./cmd/micro-api
 
 archives:
   - formats: [tar.gz]
