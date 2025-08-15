@@ -317,7 +317,7 @@
               <span
                 x-show="serverVersion"
                 class="px-2 py-1 text-xs rounded bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200 font-medium select-all"
-                x-text="'v: ' + serverVersion"
+                x-text="serverVersion == 'dev' ? 'v: dev' : serverVersion"
               ></span>
             </div>
           </div>
