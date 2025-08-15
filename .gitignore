@@ -1,5 +1,6 @@
 bin/
 *.db
+*.db*
 .env
 .DS_Store
 coverage.out
@@ -26,9 +27,7 @@ go.work
 go.sum.old
 go.mod.old
 
-go.sum
-data.db*
-
 node_modules
+
 # Added by goreleaser init:
 dist/

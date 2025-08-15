@@ -12,7 +12,9 @@ COPY go.mod go.sum ./
 RUN --mount=type=cache,target=/go/pkg/mod go mod download
 
 # Copy the rest of the source
-COPY . .
+COPY cmd/ ./cmd/
+COPY web/ ./web/
+COPY internal/ ./internal/
 
 # Build the micro API binary
 RUN --mount=type=cache,target=/go/pkg/mod go build -ldflags="-s -w" -o micro-api ./cmd/micro-api
