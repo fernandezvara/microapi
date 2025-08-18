@@ -34,8 +34,11 @@ func ParseWhere(whereRaw string) (*ParsedWhere, error) {
 			if !ValidOperator(op) {
 				return nil, fmt.Errorf("unsupported operator: %s", op)
 			}
-			s, _ := ToSQL(op, expr)
-			pw.Conds = append(pw.Conds, Condition{SQL: s, Args: []any{v}})
+			s, args, err := ToSQL(op, expr, v)
+			if err != nil {
+				return nil, err
+			}
+			pw.Conds = append(pw.Conds, Condition{SQL: s, Args: args})
 		}
 		pw.Paths = append(pw.Paths, jsonPath)
 	}

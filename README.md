@@ -4,7 +4,7 @@ A lightweight, zero-ops JSON micro-database and API server. Store schemaless JSO
 
 - **Storage**: SQLite with WAL, one physical table per set: `data_<set>` storing `{id, collection, data JSON, created_at, updated_at}`.
 - **API**: Clean REST endpoints for documents, collections, sets, indexing, and schemas.
-- **Query**: JSON where filters with operators ($eq, $ne, $gt, $gte, $lt, $lte), order, limit/offset, pagination header.
+- **Query**: JSON where filters with rich operators ($eq, $ne, $gt, $gte, $lt, $lte, $like, $ilike, $startsWith, $istartsWith, $endsWith, $iendsWith, $contains, $icontains, $in, $nin, $between, $isNull, $notNull), plus order, limit/offset, and pagination header.
 - **Indexes**: Async JSON-path indexes tracked in metadata and usage-counted for observability.
 - **Validation**: Optional per-collection JSON Schema validation on create/update/replace.
 - **Dashboard**: Single-page UI served from `/` for exploring data and testing APIs.
@@ -134,11 +134,49 @@ Pagination:
 
 Supported operators in `where`:
 
-- `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`
+- Comparisons: `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`
+- Text pattern:
+  - `$like` (SQL LIKE pattern e.g. "%foo%")
+  - `$ilike` (case-insensitive LIKE)
+  - `$startsWith`, `$istartsWith`
+  - `$endsWith`, `$iendsWith`
+  - `$contains`, `$icontains` (wraps value with `%...%`)
+- Sets: `$in`, `$nin` (expects an array of values)
+- Range: `$between` (expects `[min, max]`)
+- Null checks: `$isNull`, `$notNull` (value ignored)
+
+Notes:
+
+- `$in` with an empty array matches no rows; `$nin` with an empty array matches all rows.
+- Case-insensitive operators use `LOWER(...)` under the hood.
+- Dot paths (`user.age`) are converted to JSONPath; you can also pass JSONPath directly (e.g. `$.user.age`).
 
 Paths:
 
 - You can use dot notation (`user.age`) or JSONPath (`$.user.age`).
+
+#### Errors and edge-cases
+
+- Malformed `where` returns HTTP 400 with a friendly message:
+  - `"malformed where clause: expected a JSON object where keys are field paths and values are operator objects"`
+- Unsupported operator returns HTTP 400, e.g. `"unsupported operator: $foo"`.
+- Empty results always return an empty array `[]` (never `null`).
+- Multi-argument expectations:
+  - `$in`/`$nin` require an array value.
+  - `$between` requires a two-element array `[min, max]`.
+
+Examples of bad requests:
+
+```bash
+# Malformed JSON
+curl "http://localhost:8080/myset/users?where=not-json"
+
+# Unsupported operator
+curl "http://localhost:8080/myset/users?where={\"age\":{\"$foo\":1}}"
+
+# Wrong shape for $between (should be [min,max])
+curl "http://localhost:8080/myset/users?where={\"age\":{\"$between\":42}}"
+```
 
 Examples:
 
@@ -148,6 +186,31 @@ curl "http://localhost:8080/myset/users?where={\"user.age\":{\"$gte\":18}}&order
 
 # Suppress metadata
 curl "http://localhost:8080/myset/users?where={}&meta=0"
+
+# Text pattern matching
+curl "http://localhost:8080/myset/users?where={\"user.name\":{\"$contains\":\"Ada\"}}"
+curl "http://localhost:8080/myset/users?where={\"user.name\":{\"$icontains\":\"ada\"}}"   # case-insensitive
+curl "http://localhost:8080/myset/users?where={\"user.name\":{\"$startsWith\":\"An\"}}"
+curl "http://localhost:8080/myset/users?where={\"user.name\":{\"$istartsWith\":\"an\"}}"  # case-insensitive
+curl "http://localhost:8080/myset/users?where={\"user.email\":{\"$endsWith\":\"@example.com\"}}"
+curl "http://localhost:8080/myset/users?where={\"user.email\":{\"$iendsWith\":\"@EXAMPLE.COM\"}}"  # case-insensitive
+
+# Set membership
+curl "http://localhost:8080/myset/orders?where={\"status\":{\"$in\":[\"new\",\"processing\"]}}"
+curl "http://localhost:8080/myset/orders?where={\"status\":{\"$nin\":[\"cancelled\"]}}"
+
+# Range
+curl "http://localhost:8080/myset/products?where={\"price\":{\"$between\":[10,20]}}"
+
+# Null checks
+curl "http://localhost:8080/myset/users?where={\"archivedAt\":{\"$isNull\":true}}"
+curl "http://localhost:8080/myset/users?where={\"archivedAt\":{\"$notNull\":true}}"
+
+# Order by JSON path
+curl "http://localhost:8080/myset/users?order_by=$.user.age"
+
+# Pagination and debug header
+curl -i "http://localhost:8080/myset/users?limit=5&offset=5&debug=1"
 ```
 
 ### Index management
