@@ -149,11 +149,13 @@ Notes:
 
 - `$in` with an empty array matches no rows; `$nin` with an empty array matches all rows.
 - Case-insensitive operators use `LOWER(...)` under the hood.
-- Dot paths (`user.age`) are converted to JSONPath; you can also pass JSONPath directly (e.g. `$.user.age`).
+- In `where`, you can use dot paths like `user.age` or JSONPath (e.g. `$.user.age`).
+- For `order_by` and index endpoints, JSONPath is accepted (e.g. `$.user.age`).
 
 Paths:
 
-- You can use dot notation (`user.age`) or JSONPath (`$.user.age`).
+- `where` keys can use dot notation (`user.age`) or JSONPath (`$.user.age`).
+- `order_by` and index endpoints accept JSONPath (e.g. `$.user.age`).
 
 #### Errors and edge-cases
 
@@ -238,15 +240,6 @@ Index metadata fields (`internal/database/index.go`):
   - Response: `{ schema, indexes, stats: { count, created_at? } }`
 
 Documents are validated on create/replace/update when a schema is set.
-
-## MCP
-
-Planned for future versions, unstable.
-
-**Stdio Server** (`cmd/micro-api-mcp`)
-
-- Build: `make build` (produces `bin/micro-api-mcp`)
-- Run under an MCP-capable client (stdio transport). Provides the same tools against the configured SQLite DB.
 
 ## Validation, limits, and CORS
 

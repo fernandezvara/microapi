@@ -46,9 +46,14 @@ func ParseWhere(whereRaw string) (*ParsedWhere, error) {
 }
 
 func toJSONPath(dot string) string {
-	parts := strings.Split(dot, ".")
-	for i, p := range parts {
-		parts[i] = strings.ReplaceAll(p, "'", "''")
-	}
-	return "$." + strings.Join(parts, ".")
+    // If already a JSONPath (e.g. $.user.age), return it as-is after escaping single quotes
+    if strings.HasPrefix(dot, "$.") {
+        return strings.ReplaceAll(dot, "'", "''")
+    }
+    // Otherwise treat as dot notation and convert to JSONPath
+    parts := strings.Split(dot, ".")
+    for i, p := range parts {
+        parts[i] = strings.ReplaceAll(p, "'", "''")
+    }
+    return "$." + strings.Join(parts, ".")
 }
