@@ -24,7 +24,7 @@ func ParseWhere(whereRaw string) (*ParsedWhere, error) {
 	}
 	var obj map[string]map[string]interface{}
 	if err := json.Unmarshal([]byte(whereRaw), &obj); err != nil {
-		return nil, fmt.Errorf("invalid where JSON: %w", err)
+		return nil, fmt.Errorf("malformed where clause: expected a JSON object where keys are field paths and values are operator objects")
 	}
 	pw := &ParsedWhere{Conds: []Condition{}, Paths: []string{}}
 	for path, ops := range obj {

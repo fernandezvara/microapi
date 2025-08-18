@@ -92,6 +92,9 @@ func (h *Handlers) QueryCollection(w http.ResponseWriter, r *http.Request) {
 	if pw != nil && len(pw.Paths) > 0 {
 		database.UpdateIndexUsage(h.db, set, collection, pw.Paths)
 	}
+	if results == nil {
+		results = []map[string]any{}
+	}
 	middleware.WriteJSON(w, http.StatusOK, true, results, nil)
 }
 
