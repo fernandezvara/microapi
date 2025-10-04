@@ -1,6 +1,6 @@
 module microapi
 
-go 1.24.4
+go 1.25.1
 
 require (
 	github.com/go-chi/chi/v5 v5.2.2
@@ -8,6 +8,7 @@ require (
 	github.com/modelcontextprotocol/go-sdk v0.2.0
 	github.com/rs/xid v1.6.0
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.2
+	github.com/yuin/gopher-lua v1.1.1
 	modernc.org/sqlite v1.38.2
 )
 

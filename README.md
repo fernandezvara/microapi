@@ -9,6 +9,7 @@ A lightweight, zero-ops JSON micro-database and API server. Store schemaless JSO
 - **Validation**: Optional per-collection JSON Schema validation on create/update/replace.
 - **Dashboard**: Single-page UI served from `/` for exploring data and testing APIs.
 - **MCP**: Two flavors: HTTP endpoints at `/mcp` and a standalone stdio MCP server (`cmd/micro-api-mcp`).
+- **Lua Functions**: Execute custom business logic with Lua scripts that have full database access, transaction support, and sandboxed execution.
 
 ## Quick start
 
@@ -241,6 +242,184 @@ Index metadata fields (`internal/database/index.go`):
 
 Documents are validated on create/replace/update when a schema is set.
 
+## Lua Functions
+
+Create and execute custom business logic functions using Lua. Functions are scoped to a set, can perform complex database operations, and execute within transactions.
+
+### Function Endpoints
+
+- **POST** `/{set}/_functions` → create a function
+- **GET** `/{set}/_functions` → list all functions in set
+- **GET** `/{set}/_functions/{id}` → get function definition
+- **PUT** `/{set}/_functions/{id}` → update function
+- **DELETE** `/{set}/_functions/{id}` → delete function
+- **POST** `/{set}/_functions/{id}` → execute function
+- **POST** `/{set}/_functions/_sandbox` → test function without persisting changes
+- **POST** `/{set}/_functions/_import` → import functions
+- **GET** `/{set}/_functions?export=true` → export all functions
+- **GET** `/{set}/_functions/{id}?export=true` → export single function
+
+### Function Definition
+
+```json
+{
+  "id": "function_name",
+  "name": "Display Name",
+  "description": "What it does",
+  "code": "lua code here",
+  "timeout": 5000,
+  "input_schema": { }
+}
+```
+
+- **id**: Unique identifier (alphanumeric + underscore only)
+- **code**: Lua script to execute (required)
+- **timeout**: Max execution time in milliseconds (default: 5000, max: 30000)
+- **input_schema**: Optional JSON Schema for input validation
+
+### Lua API
+
+Functions have access to the following operations within their set:
+
+**Database Operations:**
+```lua
+-- Query documents
+local results = microapi.query("collection", {field = "value"})
+
+-- Get document by ID
+local doc = microapi.get("collection", "doc_id")
+
+-- Create document
+local created = microapi.create("collection", {name = "Alice", age = 30})
+
+-- Update document (full replace)
+local updated = microapi.update("collection", "doc_id", {name = "Alice", age = 31})
+
+-- Patch document (merge)
+local patched = microapi.patch("collection", "doc_id", {age = 31})
+
+-- Delete document
+local success = microapi.delete("collection", "doc_id")
+```
+
+**Utilities:**
+```lua
+-- JSON encoding/decoding
+local json_str = json.encode({key = "value"})
+local data = json.decode('{"key":"value"}')
+
+-- Logging
+log.info("Information message")
+log.error("Error message")
+```
+
+**Global Variables:**
+```lua
+-- Input data (from request body)
+local value = input.field_name
+
+-- Current set name (read-only)
+local current_set = set
+
+-- Execution context (read-only)
+local func_id = ctx.function_id
+local exec_id = ctx.execution_id
+local timestamp = ctx.timestamp
+
+-- Set HTTP response code
+http_status = 200  -- or 201, 400, 404, 409, 500, etc.
+
+-- Set response data
+output = {
+  message = "Success",
+  data = result
+}
+```
+
+### Transaction Behavior
+
+All database operations within a function execute in a SQL transaction:
+
+- **Commits** when `http_status` is 2xx (200-299) and no errors
+- **Rolls back** when `http_status` is 4xx/5xx (400+)
+- **Rolls back** on Lua runtime errors
+- **Rolls back** on timeout
+- **Always rolls back** in sandbox mode
+
+This ensures atomic operations and data consistency.
+
+### Example: Shopping Cart Function
+
+```bash
+# Create function
+curl -X POST http://localhost:8080/shop/_functions \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "id": "add_to_cart",
+    "name": "Add to Cart",
+    "code": "local product = microapi.get(\"products\", input.product_id)\nif not product then\n  http_status = 404\n  output = {error = \"Product not found\"}\n  return\nend\n\nlocal carts = microapi.query(\"carts\", {user_id = input.user_id})\nlocal cart\nif #carts == 0 then\n  cart = microapi.create(\"carts\", {user_id = input.user_id, items = {}, total = 0})\nelse\n  cart = carts[1]\nend\n\ntable.insert(cart.items, {product_id = input.product_id, quantity = input.quantity})\ncart = microapi.update(\"carts\", cart._meta.id, cart)\n\nhttp_status = 200\noutput = {cart = cart}",
+    "timeout": 5000
+  }'
+
+# Execute function
+curl -X POST http://localhost:8080/shop/_functions/add_to_cart \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "user_id": "user_123",
+    "product_id": "prod_456",
+    "quantity": 2
+  }'
+
+# Test in sandbox (no changes persisted)
+curl -X POST http://localhost:8080/shop/_functions/_sandbox \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "code": "http_status = 200\noutput = {test = true}",
+    "input": {}
+  }'
+
+# Export functions
+curl http://localhost:8080/shop/_functions?export=true
+
+# Import functions
+curl -X POST http://localhost:8080/shop/_functions/_import \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "version": "1.0",
+    "functions": [...],
+    "options": {"overwrite": false, "validate": true}
+  }'
+```
+
+### Security & Isolation
+
+- **Sandboxed**: No file system, network, or OS access
+- **Set-scoped**: Functions can only access data within their set
+- **Timeout enforced**: Maximum execution time of 30 seconds
+- **Code validation**: Syntax checking before save
+- **Pattern blocking**: Dangerous patterns (require, dofile, etc.) are blocked
+
+### Monitoring
+
+Each function tracks execution statistics:
+- Total executions
+- Success/error counts
+- Success rate
+- Average duration
+- Error breakdown by HTTP status code
+
+View stats by getting the function definition:
+```bash
+curl http://localhost:8080/shop/_functions/add_to_cart | jq '.data.stats'
+```
+
+### Additional Resources
+
+- Full documentation: `lua_functions_integration.md`
+- Examples: `examples/lua-functions/`
+- E2E tests: `scripts/e2e_functions.sh`
+- Quick reference: `examples/lua-functions/QUICK_REFERENCE.md`
+
 ## Validation, limits, and CORS
 
 - **Name validation**: set/collection must match `^[a-zA-Z0-9_]+$`.
@@ -285,10 +464,13 @@ curl -X PUT http://localhost:8080/myset/users/_schema \
 - `cmd/micro-api-mcp/`: MCP stdio server main.
 - `internal/server/server.go`: router and middleware wiring.
 - `internal/handlers/`: REST and MCP handlers.
+- `internal/luafn/`: Lua functions service, storage, and handlers.
 - `internal/query/`: where parser and SQL builder.
 - `internal/database/`: connection, migrations, indexes, per-set table helpers.
 - `internal/validation/`: JSON Schema persistence and validation.
 - `web/static/`: dashboard (`dashboard.html`, `style.css`).
+- `examples/lua-functions/`: Lua functions examples and documentation.
+- `scripts/`: E2E test scripts for core API and functions.
 - `docker-compose.yaml`: local stack with optional n8n.
 
 ## n8n integration

@@ -13,6 +13,7 @@ import (
 
 	"microapi/internal/config"
 	"microapi/internal/handlers"
+	"microapi/internal/luafn"
 	mw "microapi/internal/middleware"
 )
 
@@ -37,6 +38,7 @@ func New(cfg *config.Config, db *sql.DB, version string) *Server {
 
 	// Register API routes
 	h := handlers.New(db, cfg)
+	fnHandlers := luafn.NewHandlers(db)
 
 	// Dashboard fallback at root
 	r.Get("/", h.Dashboard)
@@ -49,6 +51,15 @@ func New(cfg *config.Config, db *sql.DB, version string) *Server {
 	r.Post("/mcp", h.MCPCall)
 
 	r.Route("/", func(r chi.Router) {
+		// Function routes (placed before {collection} to avoid capture)
+		r.Post("/{set}/_functions/_sandbox", fnHandlers.ExecuteSandbox)
+		r.Post("/{set}/_functions/_import", fnHandlers.ImportFunctions)
+		r.Post("/{set}/_functions/{id}", fnHandlers.ExecuteFunction)
+		r.Post("/{set}/_functions", fnHandlers.CreateFunction)
+		r.Get("/{set}/_functions/{id}", fnHandlers.GetFunction)
+		r.Get("/{set}/_functions", fnHandlers.ListFunctions)
+		r.Put("/{set}/_functions/{id}", fnHandlers.UpdateFunction)
+		r.Delete("/{set}/_functions/{id}", fnHandlers.DeleteFunction)
 		// Index management routes (placed before {id} to avoid capture)
 		r.Post("/{set}/{collection}/_index", h.CreateIndex)
 		r.Get("/{set}/{collection}/_indexes", h.ListIndexes)

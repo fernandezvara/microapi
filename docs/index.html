@@ -194,8 +194,8 @@
             <span class="text-amber-300">in Minutes</span>
           </h1>
           <p class="text-xl md:text-2xl mb-8 text-amber-100 max-w-3xl mx-auto">
-            Create dynamic collections, store any JSON structure, and query with
-            MongoDB-like syntax. No setup, no migrations, just pure
+            Create dynamic collections, store any JSON structure, query with
+            MongoDB-like syntax, and run custom Lua functions. No setup, no migrations, just pure
             productivity.
           </p>
           <div class="flex flex-col sm:flex-row gap-4 justify-center">
@@ -514,6 +514,30 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Lua Functions</h3>
+            <p class="text-gray-600">
+              Write custom business logic with Lua. Access data, make HTTP requests, and return custom responses.
+            </p>
+          </div>
+
+          <div class="bg-white p-6 rounded-lg shadow-sm border">
+            <div
+              class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-4"
+            >
+              <svg
+                class="w-6 h-6 text-amber-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
                   d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
                 />
               </svg>
@@ -569,6 +593,13 @@
               class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm"
             >
               Responses
+            </button>
+            <button
+              @click="activeTab = 'functions'"
+              :class="activeTab === 'functions' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+              class="whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm"
+            >
+              Functions
             </button>
           </nav>
         </div>
@@ -899,6 +930,289 @@
                     <span class="font-mono text-sm">500</span>
                     <span class="text-sm text-red-700">Server Error</span>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div x-show="activeTab === 'functions'" x-cloak>
+          <div class="space-y-8">
+            <div>
+              <h3 class="text-xl font-semibold mb-4">What are Functions?</h3>
+              <p class="text-gray-700 mb-4">
+                Functions allow you to write custom business logic in Lua that runs server-side. They can query and manipulate data, 
+                perform calculations, integrate with external APIs, and return custom responses.
+              </p>
+              <div class="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <p class="text-amber-800 font-semibold">⚡ Key Benefits:</p>
+                <ul class="text-sm text-amber-700 mt-2 space-y-1 ml-4 list-disc">
+                  <li>Execute complex business logic on the server</li>
+                  <li>Access database operations directly from Lua</li>
+                  <li>Compose multiple operations atomically</li>
+                  <li>Return custom HTTP status codes and responses</li>
+                </ul>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-semibold mb-4">Create a Function</h3>
+              <div class="code-block">
+                <pre><span class="highlight">POST</span> /users/_functions
+
+{
+  <span class="highlight-blue">"id"</span>: <span class="highlight-green">"calculate_total"</span>,
+  <span class="highlight-blue">"name"</span>: <span class="highlight-green">"Calculate Order Total"</span>,
+  <span class="highlight-blue">"description"</span>: <span class="highlight-green">"Calculates order total with tax and shipping"</span>,
+  <span class="highlight-blue">"timeout"</span>: <span class="highlight">5000</span>,
+  <span class="highlight-blue">"code"</span>: <span class="highlight-green">"-- Lua code here"</span>
+}</pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-semibold mb-4">Execute a Function</h3>
+              <div class="code-block">
+                <pre><span class="highlight">POST</span> /users/_functions/calculate_total
+
+{
+  <span class="highlight-blue">"order_id"</span>: <span class="highlight-green">"order-123"</span>,
+  <span class="highlight-blue">"subtotal"</span>: <span class="highlight">100.00</span>
+}</pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-semibold mb-4">Function Endpoints</h3>
+              <div class="space-y-2">
+                <div class="flex justify-between p-3 bg-gray-50 rounded">
+                  <div>
+                    <span class="font-mono text-sm">POST /:set/_functions</span>
+                    <p class="text-xs text-gray-600 mt-1">Create a new function</p>
+                  </div>
+                </div>
+                <div class="flex justify-between p-3 bg-gray-50 rounded">
+                  <div>
+                    <span class="font-mono text-sm">GET /:set/_functions</span>
+                    <p class="text-xs text-gray-600 mt-1">List all functions</p>
+                  </div>
+                </div>
+                <div class="flex justify-between p-3 bg-gray-50 rounded">
+                  <div>
+                    <span class="font-mono text-sm">GET /:set/_functions/:id</span>
+                    <p class="text-xs text-gray-600 mt-1">Get function details</p>
+                  </div>
+                </div>
+                <div class="flex justify-between p-3 bg-gray-50 rounded">
+                  <div>
+                    <span class="font-mono text-sm">PUT /:set/_functions/:id</span>
+                    <p class="text-xs text-gray-600 mt-1">Update function</p>
+                  </div>
+                </div>
+                <div class="flex justify-between p-3 bg-gray-50 rounded">
+                  <div>
+                    <span class="font-mono text-sm">DELETE /:set/_functions/:id</span>
+                    <p class="text-xs text-gray-600 mt-1">Delete function</p>
+                  </div>
+                </div>
+                <div class="flex justify-between p-3 bg-amber-50 rounded border border-amber-200">
+                  <div>
+                    <span class="font-mono text-sm font-semibold">POST /:set/_functions/:id</span>
+                    <p class="text-xs text-amber-700 mt-1">Execute function with input data</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-semibold mb-4">Available Lua APIs</h3>
+              
+              <h4 class="text-lg font-semibold mb-2 mt-4">📦 microapi - Database Operations</h4>
+              <div class="code-block mb-4">
+                <pre><span class="highlight-green">-- Query documents</span>
+docs = <span class="highlight">microapi.query</span>(<span class="highlight-green">"collection"</span>, {
+  where = {age = {[<span class="highlight-green">"$gte"</span>] = <span class="highlight">25</span>}},
+  limit = <span class="highlight">10</span>,
+  offset = <span class="highlight">0</span>,
+  order_by = <span class="highlight-green">"created_at"</span>
+})
+
+<span class="highlight-green">-- Get single document by ID</span>
+doc = <span class="highlight">microapi.get</span>(<span class="highlight-green">"collection"</span>, <span class="highlight-green">"doc-id-123"</span>)
+
+<span class="highlight-green">-- Create document</span>
+new_doc = <span class="highlight">microapi.create</span>(<span class="highlight-green">"collection"</span>, {
+  name = <span class="highlight-green">"John Doe"</span>,
+  email = <span class="highlight-green">"john@example.com"</span>
+})
+
+<span class="highlight-green">-- Update document (full replace)</span>
+updated = <span class="highlight">microapi.update</span>(<span class="highlight-green">"collection"</span>, <span class="highlight-green">"doc-id-123"</span>, {
+  name = <span class="highlight-green">"Jane Doe"</span>
+})
+
+<span class="highlight-green">-- Patch document (partial update)</span>
+patched = <span class="highlight">microapi.patch</span>(<span class="highlight-green">"collection"</span>, <span class="highlight-green">"doc-id-123"</span>, {
+  status = <span class="highlight-green">"active"</span>
+})
+
+<span class="highlight-green">-- Delete document</span>
+<span class="highlight">microapi.delete</span>(<span class="highlight-green">"collection"</span>, <span class="highlight-green">"doc-id-123"</span>)</pre>
+              </div>
+
+              <h4 class="text-lg font-semibold mb-2 mt-4">🔤 json - JSON Encoding/Decoding</h4>
+              <div class="code-block mb-4">
+                <pre><span class="highlight-green">-- Encode Lua table to JSON string</span>
+json_str = <span class="highlight">json.encode</span>({name = <span class="highlight-green">"Alice"</span>, age = <span class="highlight">30</span>})
+
+<span class="highlight-green">-- Decode JSON string to Lua table</span>
+data = <span class="highlight">json.decode</span>(<span class="highlight-green">'{"status":"ok"}'</span>)</pre>
+              </div>
+
+              <h4 class="text-lg font-semibold mb-2 mt-4">📝 log - Logging</h4>
+              <div class="code-block mb-4">
+                <pre><span class="highlight-green">-- Info level logging</span>
+<span class="highlight">log.info</span>(<span class="highlight-green">"Processing order"</span>, order_id)
+
+<span class="highlight-green">-- Error level logging</span>
+<span class="highlight">log.error</span>(<span class="highlight-green">"Failed to process"</span>, err)</pre>
+              </div>
+
+              <h4 class="text-lg font-semibold mb-2 mt-4">🌐 http - HTTP Requests</h4>
+              <div class="code-block mb-4">
+                <pre><span class="highlight-green">-- Make HTTP GET request</span>
+response = <span class="highlight">http.get</span>(<span class="highlight-green">"https://api.example.com/data"</span>, {
+  headers = {Authorization = <span class="highlight-green">"Bearer token"</span>}
+})
+
+<span class="highlight-green">-- Make HTTP POST request</span>
+response = <span class="highlight">http.post</span>(<span class="highlight-green">"https://api.example.com/webhook"</span>, {
+  body = {event = <span class="highlight-green">"order.created"</span>},
+  headers = {[<span class="highlight-green">"Content-Type"</span>] = <span class="highlight-green">"application/json"</span>}
+})</pre>
+              </div>
+
+              <h4 class="text-lg font-semibold mb-2 mt-4">📥 Input & Output</h4>
+              <div class="code-block mb-4">
+                <pre><span class="highlight-green">-- Access input data (from POST body)</span>
+user_id = <span class="highlight">input</span>.user_id
+amount = <span class="highlight">input</span>.amount
+
+<span class="highlight-green">-- Set HTTP status code (default: 200)</span>
+<span class="highlight">http_status</span> = <span class="highlight">201</span>
+
+<span class="highlight-green">-- Set response data</span>
+<span class="highlight">output</span> = {
+  success = <span class="highlight">true</span>,
+  message = <span class="highlight-green">"Order processed"</span>,
+  order_id = order_id
+}</pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-semibold mb-4">Complete Example</h3>
+              <div class="code-block">
+                <pre><span class="highlight-green">-- Process an order with validation and calculations</span>
+
+<span class="highlight-green">-- Validate input</span>
+<span class="highlight">if</span> <span class="highlight">not</span> input.user_id <span class="highlight">or</span> <span class="highlight">not</span> input.items <span class="highlight">then</span>
+  http_status = <span class="highlight">400</span>
+  output = {error = <span class="highlight-green">"Missing required fields"</span>}
+  <span class="highlight">return</span>
+<span class="highlight">end</span>
+
+<span class="highlight-green">-- Get user data</span>
+user = microapi.get(<span class="highlight-green">"customers"</span>, input.user_id)
+<span class="highlight">if</span> <span class="highlight">not</span> user <span class="highlight">then</span>
+  http_status = <span class="highlight">404</span>
+  output = {error = <span class="highlight-green">"User not found"</span>}
+  <span class="highlight">return</span>
+<span class="highlight">end</span>
+
+<span class="highlight-green">-- Calculate total</span>
+<span class="highlight">local</span> subtotal = <span class="highlight">0</span>
+<span class="highlight">for</span> _, item <span class="highlight">in</span> <span class="highlight">ipairs</span>(input.items) <span class="highlight">do</span>
+  subtotal = subtotal + (item.price * item.quantity)
+<span class="highlight">end</span>
+
+<span class="highlight">local</span> tax = subtotal * <span class="highlight">0.10</span>
+<span class="highlight">local</span> total = subtotal + tax
+
+<span class="highlight-green">-- Create order</span>
+order = microapi.create(<span class="highlight-green">"orders"</span>, {
+  user_id = input.user_id,
+  items = input.items,
+  subtotal = subtotal,
+  tax = tax,
+  total = total,
+  status = <span class="highlight-green">"pending"</span>,
+  created_at = <span class="highlight">os.time</span>()
+})
+
+<span class="highlight-green">-- Log the operation</span>
+log.info(<span class="highlight-green">"Order created"</span>, order._meta.id)
+
+<span class="highlight-green">-- Return success response</span>
+http_status = <span class="highlight">201</span>
+output = {
+  success = <span class="highlight">true</span>,
+  order = order,
+  total = total
+}</pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-semibold mb-4">Import/Export Functions</h3>
+              <p class="text-gray-700 mb-4">
+                Functions can be exported and imported in bulk for backup or deployment across environments.
+              </p>
+              <div class="code-block">
+                <pre><span class="highlight-green">-- Export all functions</span>
+<span class="highlight">GET</span> /users/_functions/_export
+
+<span class="highlight-green">-- Import functions</span>
+<span class="highlight">POST</span> /users/_functions/_import
+
+{
+  <span class="highlight-blue">"version"</span>: <span class="highlight-green">"1.0"</span>,
+  <span class="highlight-blue">"functions"</span>: [
+    {
+      <span class="highlight-blue">"id"</span>: <span class="highlight-green">"my_function"</span>,
+      <span class="highlight-blue">"code"</span>: <span class="highlight-green">"..."</span>
+    }
+  ],
+  <span class="highlight-blue">"options"</span>: {
+    <span class="highlight-blue">"overwrite"</span>: <span class="highlight">true</span>,
+    <span class="highlight-blue">"validate"</span>: <span class="highlight">true</span>
+  }
+}</pre>
+              </div>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-semibold mb-4">Best Practices</h3>
+              <div class="grid md:grid-cols-2 gap-4">
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <p class="text-green-800 font-semibold mb-2">✅ Do:</p>
+                  <ul class="text-sm text-green-700 space-y-1 ml-4 list-disc">
+                    <li>Validate all input data</li>
+                    <li>Handle errors gracefully</li>
+                    <li>Use appropriate HTTP status codes</li>
+                    <li>Log important operations</li>
+                    <li>Set reasonable timeouts</li>
+                  </ul>
+                </div>
+                <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p class="text-red-800 font-semibold mb-2">❌ Don't:</p>
+                  <ul class="text-sm text-red-700 space-y-1 ml-4 list-disc">
+                    <li>Use infinite loops</li>
+                    <li>Store sensitive data in code</li>
+                    <li>Make unbounded queries</li>
+                    <li>Ignore error handling</li>
+                    <li>Exceed timeout limits</li>
+                  </ul>
                 </div>
               </div>
             </div>
