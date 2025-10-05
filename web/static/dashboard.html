@@ -270,14 +270,14 @@
             <div class="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
               <div class="flex justify-between items-start">
                 <div>
-                  <p class="text-gray-400 text-sm">API Calls (24h)</p>
-                  <p class="text-3xl font-bold mt-2">—</p>
+                  <p class="text-gray-400 text-sm">Functions</p>
+                  <p class="text-3xl font-bold mt-2" x-text="functions.length"></p>
                 </div>
-                <div class="bg-yellow-600 bg-opacity-20 p-3 rounded-lg">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-yellow-400" fill="none"
-                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                <div class="bg-blue-600 bg-opacity-20 p-3 rounded-lg">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24"
+                    stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
                     <path stroke-linecap="round" stroke-linejoin="round"
-                      d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" />
+                      d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
                   </svg>
                 </div>
               </div>
@@ -306,8 +306,7 @@
                   </div>
                   <div class="p-2">
                     <template x-for="collection in (selectedSet?.collections || [])" :key="collection.name">
-                      <button
-                        @click="selectedCollection = collection.name; loadCollectionInfo(selectedSet.name, collection.name)"
+                      <button @click="selectedCollection = collection.name"
                         :class="selectedCollection === collection.name ? 'bg-amber-600 text-white' : 'hover:bg-gray-100 dark:hover:bg-gray-700'"
                         class="w-full text-left px-3 py-2 rounded-lg text-sm mb-1 transition-all flex justify-between items-center">
                         <span x-text="collection.name"></span>
@@ -560,6 +559,10 @@
                   <div class="space-y-2">
                     <div x-show="isLoadingDocs" class="text-sm text-gray-500 dark:text-gray-400">
                       Loading...
+                    </div>
+                    <div x-show="!isLoadingDocs && documents && documents.length === 0"
+                      class="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
+                      No documents found
                     </div>
                     <template x-for="(doc, i) in documents" :key="doc._meta.id">
                       <div
@@ -1332,10 +1335,6 @@
           if (this.selectedSet.collections.length) {
             this.selectedCollection = this.selectedSet.collections[0].name;
             await this.loadDocuments();
-            await this.loadCollectionInfo(
-              this.selectedSet.name,
-              this.selectedCollection
-            );
             this.isEditingSchema = false;
           }
           // Load functions for this set
@@ -1414,21 +1413,6 @@
               null,
               2
             );
-          }
-        },
-
-        async loadCollectionInfo(setName, collectionName) {
-          if (!setName || !collectionName) return;
-          try {
-            const r = await fetch(`/${setName}/${collectionName}/_info`);
-            const j = await r.json();
-            if (j && j.success) {
-              if (!this.collectionInfos[setName])
-                this.collectionInfos[setName] = {};
-              this.collectionInfos[setName][collectionName] = j.data || {};
-            }
-          } catch (e) {
-            console.error("loadCollectionInfo error", e);
           }
         },
 
