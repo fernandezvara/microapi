@@ -19,8 +19,9 @@ type Function struct {
 
 // FunctionMeta holds metadata for a function
 type FunctionMeta struct {
-	CreatedAt int64 `json:"created_at"`
-	UpdatedAt int64 `json:"updated_at"`
+	ID        string `json:"id"`
+	CreatedAt int64  `json:"created_at"`
+	UpdatedAt int64  `json:"updated_at"`
 }
 
 // FunctionStats holds execution statistics for a function

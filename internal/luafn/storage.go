@@ -103,6 +103,7 @@ func (s *Storage) GetFunction(set, id string) (*Function, error) {
 	fn := &Function{
 		ID: id,
 		Meta: &FunctionMeta{
+			ID:        id,
 			CreatedAt: created,
 			UpdatedAt: updated,
 		},
@@ -160,6 +161,7 @@ func (s *Storage) ListFunctions(set string) ([]*Function, error) {
 		fn := &Function{
 			ID: id,
 			Meta: &FunctionMeta{
+				ID:        id,
 				CreatedAt: created,
 				UpdatedAt: updated,
 			},
